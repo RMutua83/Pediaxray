@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI - New Diagnosis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --background-light: #f0f4f8;
+            --background-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --primary-blue: #2563eb;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-light: #e5e7eb;
+            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            --card-border-radius: 0.75rem;
+            --input-border: #d1d5db;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background-color: var(--background-white);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo svg {
+            color: var(--primary-blue);
+            margin-right: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .header .css-badge {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .main-container {
+            padding: 2rem 3rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            margin-right: 2rem;
+            transition: color 0.2s;
+        }
+
+        .page-header a:hover {
+            color: var(--primary-blue);
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--background-white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--card-border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-header p {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin: 0.25rem 0 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            border: 1px solid var(--input-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-gray);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--input-border);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .file-upload-area .upload-icon {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload-area p {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .file-upload-area a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            PneumoAI
+        </div>
+        <div class="css-badge">CSS</div>
+    </header>
+
+    <main class="main-container">
+        <div class="page-header">
+            <a href="#">
+                <i class="fas fa-arrow-left"></i> &nbsp; Back to Dashboard
+            </a>
+            <h1>New Diagnosis</h1>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Patient Information</h2>
+                    <p>Enter patient details for the diagnosis</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="patient-id">Patient ID</label>
+                        <input type="text" id="patient-id" value="P001">
+                    </div>
+                    <div class="form-group">
+                        <label for="patient-name">Patient Name</label>
+                        <input type="text" id="patient-name" value="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" value="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender">
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (Kg)</label>
+                        <input type="number" id="weight" value="25.5">
+                    </div>
+                    <div></div>
+                    <div class="form-group full-width">
+                        <label for="symptoms">Symptoms</label>
+                        <textarea id="symptoms" placeholder="Describe the patient's symptoms..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="medical-history">Medical History</label>
+                        <textarea id="medical-history" placeholder="Any relevant medical history..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Chest X-ray Analysis</h2>
+                    <p>Upload chest X-ray image for AI analysis</p>
+                </div>
+                
+                <div class="file-upload-area">
+                    <i class="fas fa-upload upload-icon"></i>
+                    <p>
+                        <a href="#">Click to upload</a> or drag and drop
+                    </p>
+                    <p>PNG, JPG up to 10MB</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

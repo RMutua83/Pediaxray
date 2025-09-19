@@ -1,10 +1,7 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
+/* ==========================
+   Light & Dark Mode Variables
+   ========================== */
 :root {
-  /* Updated color tokens to match medical design brief */
   --background: #ffffff;
   --foreground: #164e63;
   --card: #ecfeff;
@@ -24,12 +21,16 @@
   --border: #d1d5db;
   --input: #ffffff;
   --ring: rgba(22, 78, 99, 0.5);
+  --radius: 0.625rem;
+
+  /* Chart Colors */
   --chart-1: #f59e0b;
   --chart-2: #164e63;
   --chart-3: #dc2626;
   --chart-4: #475569;
   --chart-5: #ecfeff;
-  --radius: 0.5rem;
+
+  /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #164e63;
   --sidebar-primary: #f59e0b;
@@ -40,7 +41,7 @@
   --sidebar-ring: rgba(245, 158, 11, 0.5);
 }
 
-.dark {
+body.dark {
   --background: #0f172a;
   --foreground: #f1f5f9;
   --card: #1e293b;
@@ -60,11 +61,6 @@
   --border: #334155;
   --input: #1e293b;
   --ring: rgba(14, 165, 233, 0.5);
-  --chart-1: #f59e0b;
-  --chart-2: #0ea5e9;
-  --chart-3: #ef4444;
-  --chart-4: #94a3b8;
-  --chart-5: #334155;
   --sidebar: #1e293b;
   --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #0ea5e9;
@@ -75,52 +71,193 @@
   --sidebar-ring: rgba(14, 165, 233, 0.5);
 }
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+/* ==========================
+   Base Styles
+   ========================== */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  margin: 0;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* ==========================
+   Utility Classes
+   ========================== */
+.bg-background { background-color: var(--background); }
+.text-foreground { color: var(--foreground); }
+
+.bg-primary { background-color: var(--primary); }
+.text-primary { color: var(--primary-foreground); }
+
+.bg-secondary { background-color: var(--secondary); }
+.text-secondary { color: var(--secondary-foreground); }
+
+.bg-card { background-color: var(--card); }
+.text-card-foreground { color: var(--card-foreground); }
+
+.text-muted-foreground { color: var(--muted-foreground); }
+.bg-muted { background-color: var(--muted); }
+
+.bg-accent { background-color: var(--accent); }
+.text-accent-foreground { color: var(--accent-foreground); }
+
+.bg-destructive { background-color: var(--destructive); }
+.text-destructive-foreground { color: var(--destructive-foreground); }
+
+.border { border: 1px solid var(--border); }
+.rounded { border-radius: var(--radius); }
+
+/* ==========================
+   Cards
+   ========================== */
+.card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+/* ==========================
+   Buttons
+   ========================== */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.button-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.button-primary:hover {
+  background-color: #0b3c5d;
+}
+
+.button-outline {
+  background-color: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.button-outline:hover {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ==========================
+   Grids & Layout
+   ========================== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* ==========================
+   Typography
+   ========================== */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+.text-5xl { font-size: 3rem; }
+
+/* ==========================
+   Badges
+   ========================== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.badge-outline {
+  background-color: transparent;
+  border: 1px solid var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+/* ==========================
+   Charts Placeholder
+   ========================== */
+.chart {
+  width: 100%;
+  height: 300px;
+}
+
+/* ==========================
+   Misc
+   ========================== */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.space-x-2 > * + * { margin-left: 0.5rem; }
+.space-x-4 > * + * { margin-left: 1rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.p-6 { padding: 1.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-12 { margin-bottom: 3rem; }
+.rounded-full { border-radius: 9999px; }
+.shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.transition { transition: all 0.2s ease; }
+.hover\:shadow-lg:hover { box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
+
+/* ==========================
+   Scrollbar (Optional)
+   ========================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--muted-foreground);
+  border-radius: var(--radius);
 }

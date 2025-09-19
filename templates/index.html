@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PneumoAI - Pediatric Pneumonia Diagnosis</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: "#e0e7ff",
+            foreground: "#0a0a0a",
+            card: "#ecfeff",
+            "card-foreground": "#0a0a0a",
+            primary: "#0ea5e9",
+            "primary-foreground": "#0f172a",
+            secondary: "#f59e0b",
+            "secondary-foreground": "#0f172a",
+            muted: "#fef2f2",
+            "muted-foreground": "#475569",
+            accent: "#f59e0b",
+            "accent-foreground": "#164e63",
+            destructive: "#dc2626",
+            "destructive-foreground": "#ffffff"
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-background text-foreground">
+
+  <!-- Navigation -->
+  <nav class="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl font-bold text-foreground">PneumoAI</span>
+      </div>
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="#features" class="text-muted-foreground hover:text-foreground">Features</a>
+        <a href="#" class="px-4 py-2 border rounded bg-transparent">Sign In</a>
+        <!--a href="#" class="px-4 py-2 bg-primary text-white rounded">Get Started</a-->
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="py-20 px-4 bg-gradient-to-br from-card to-background text-center">
+    <span class="inline-block mb-6 px-4 py-1 bg-secondary/10 text-secondary border rounded">
+      AI-Powered Medical Diagnosis
+    </span>
+    <h1 class="text-5xl md:text-7xl font-bold mb-6">
+      Revolutionizing <span class="text-primary block">Pediatric Care</span>
+    </h1>
+    <p class="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+      Advanced AI technology for accurate pediatric pneumonia detection from chest X-rays.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="#" class="px-8 py-3 bg-primary text-white rounded">
+        Start Diagnosis →
+      </a>
+      <!--<a href="#" class="px-8 py-3 border rounded bg-transparent">Watch Demo</a>-->
+    </div>
+
+    <!-- Stats -->
+   
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 px-4">
+    <div class="container mx-auto text-center mb-16">
+      <h2 class="text-4xl font-bold mb-4">Advanced AI Technology</h2>
+      <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+        Cutting-edge features designed specifically for pediatric pneumonia detection
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="p-6 border rounded hover:shadow-lg transition">
+        <i data-lucide="brain" class="w-8 h-8 text-primary mb-4"></i>
+        <h3 class="text-2xl font-semibold mb-2">AI-Powered Analysis</h3>
+        <p class="text-muted-foreground mb-4">Deep learning algorithms trained on thousands of pediatric chest X-rays</p>
+        <ul class="space-y-2 text-sm">
+          <li>✔ GRAD-CAM visualization</li>
+          <li>✔ Real-time processing</li>
+          <li>✔ Confidence scoring</li>
+        </ul>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="p-6 border rounded hover:shadow-lg transition">
+        <i data-lucide="bolt" class="w-8 h-8 text-secondary mb-4"></i>
+        <h3 class="text-2xl font-semibold mb-2">Instant Results</h3>
+        <p class="text-muted-foreground mb-4">Get accurate diagnoses in seconds, not hours</p>
+        <ul class="space-y-2 text-sm">
+          <li>✔ Sub-second analysis</li>
+          <li>✔ Automated reporting</li>
+          <li>✔ Priority alerts</li>
+        </ul>
+      </div>
+
+
+      <!-- Feature 4 -->
+      <div class="p-6 border rounded hover:shadow-lg transition">
+        <i data-lucide="users" class="w-8 h-8 text-secondary mb-4"></i>
+        <h3 class="text-2xl font-semibold mb-2">Team Collaboration</h3>
+        <p class="text-muted-foreground mb-4">Seamless workflow for medical teams and specialists</p>
+        <ul class="space-y-2 text-sm">
+          <li>✔ Multi-user access</li>
+          <li>✔ Case sharing</li>
+          <li>✔ Expert consultation</li>
+        </ul>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="p-6 border rounded hover:shadow-lg transition">
+        <i data-lucide="bar-chart-3" class="w-8 h-8 text-secondary mb-4"></i>
+        <h3 class="text-2xl font-semibold mb-2">Analytics Dashboard</h3>
+        <p class="text-muted-foreground mb-4">Comprehensive insights and performance tracking</p>
+        <ul class="space-y-2 text-sm">
+          <li>✔ Performance metrics</li>
+          <li>✔ Trend analysis</li>
+          <li>✔ Custom reports</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Footer -->
+  <footer class="py-12 px-4 border-t text-center">
+    <p class="text-muted-foreground">&copy; 2025 PneumoAI. All rights reserved.</p>
+  </footer>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
+

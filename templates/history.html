@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI - Diagnosis History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --background-light: #f0f4f8;
+            --background-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --primary-blue: #2563eb;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-light: #e5e7eb;
+            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            --card-border-radius: 0.75rem;
+            --input-border: #d1d5db;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background-color: var(--background-white);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo svg {
+            color: var(--primary-blue);
+            margin-right: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .header .css-badge {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .main-container {
+            padding: 2rem 3rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            margin-right: 2rem;
+            transition: color 0.2s;
+        }
+
+        .page-header a:hover {
+            color: var(--primary-blue);
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .export-btn {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .export-btn:hover {
+            background-color: #1e40af;
+        }
+
+        .search-filter-card {
+            background-color: var(--background-white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--card-border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .search-filter-card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-filter-card p {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin: 0 0 1rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .search-input-container {
+            position: relative;
+        }
+
+        .search-input-container input {
+            width: 100%;
+            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            border: 1px solid var(--input-border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .search-input-container i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+        }
+
+        .filter-dropdown select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--input-border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: var(--background-white);
+        }
+
+        .advanced-filters-btn {
+            background-color: var(--background-white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .advanced-filters-btn:hover {
+            background-color: var(--border-light);
+        }
+
+        .diagnosis-count {
+            font-size: 1rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .diagnosis-card {
+            background-color: var(--background-white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--card-border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .diagnosis-main-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr 1fr;
+            gap: 1rem;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+        
+        .patient-summary {
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .patient-summary .id {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            font-weight: normal;
+        }
+
+        .diagnosis-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .diagnosis-details .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .badge.pneumonia {
+            background-color: var(--accent-red);
+            color: #ffffff;
+        }
+
+        .badge.normal {
+            background-color: var(--accent-green);
+            color: #ffffff;
+        }
+
+        .diagnosis-details .confidence {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-item .label {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+        
+        .info-item .value {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .info-item .date, .info-item .time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-item .view-details-btn {
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .info-item .view-details-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .symptoms-notes-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .symptoms-notes-row h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0 0 0.5rem;
+        }
+
+        .symptoms-notes-row p {
+            margin: 0;
+            color: var(--text-gray);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            PneumoAI
+        </div>
+        <div class="css-badge">CSS</div>
+    </header>
+
+    <main class="main-container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <a href="#">
+                    <i class="fas fa-arrow-left"></i> &nbsp; Back to Dashboard
+                </a>
+                <h1>Diagnosis History</h1>
+            </div>
+            <a href="#" class="export-btn">
+                <i class="fas fa-file-export"></i> Export Report
+            </a>
+        </div>
+
+        <div class="search-filter-card">
+            <h2>Search & Filter</h2>
+            <p>Find specific diagnoses and filter by status or prediction</p>
+            <div class="filter-grid">
+                <div class="search-input-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by patient name or ID...">
+                </div>
+                <div class="filter-dropdown">
+                    <select>
+                        <option>All Statuses</option>
+                        <option>Confirmed</option>
+                        <option>Pending Review</option>
+                    </select>
+                </div>
+                <div class="filter-dropdown">
+                    <select>
+                        <option>All Predictions</option>
+                        <option>Pneumonia</option>
+                        <option>Normal</option>
+                    </select>
+                </div>
+                <button class="advanced-filters-btn">
+                    <i class="fas fa-filter"></i> Advanced Filters
+                </button>
+            </div>
+        </div>
+        
+        <p class="diagnosis-count">Showing 3 of 3 diagnoses</p>
+
+        <div class="diagnosis-list">
+            <div class="diagnosis-card">
+                <div class="diagnosis-main-row">
+                    <div class="patient-summary">
+                        <span>Emma Wilson</span>
+                        <span class="id">ID: P001</span>
+                        <span>Age: 8 • female</span>
+                    </div>
+                    <div class="diagnosis-details">
+                        <span class="badge pneumonia">Pneumonia</span>
+                        <span class="confidence">87.5% confidence</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Confirmed</span>
+                        <span class="value">Dr. Smith</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/8/2024</span>
+                        <span class="time"><i class="fas fa-clock"></i> 1:30:05 PM</span>
+                    </div>
+                    <a href="#" class="view-details-btn">View Details</a>
+                </div>
+                <div class="symptoms-notes-row">
+                    <div>
+                        <h3>Symptoms:</h3>
+                        <p>Fever, cough, difficulty breathing</p>
+                    </div>
+                    <div>
+                        <h3>Notes:</h3>
+                        <p>Clear signs of pneumonia in right lower lobe</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagnosis-card">
+                <div class="diagnosis-main-row">
+                    <div class="patient-summary">
+                        <span>Liam Brown</span>
+                        <span class="id">ID: P002</span>
+                        <span>Age: 5 • male</span>
+                    </div>
+                    <div class="diagnosis-details">
+                        <span class="badge normal">Normal</span>
+                        <span class="confidence">92.0% confidence</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Confirmed</span>
+                        <span class="value">Dr. Johnson</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/7/2024</span>
+                        <span class="time"><i class="fas fa-clock"></i> 12:15:00 PM</span>
+                    </div>
+                    <a href="#" class="view-details-btn">View Details</a>
+                </div>
+                <div class="symptoms-notes-row">
+                    <div>
+                        <h3>Symptoms:</h3>
+                        <p>Routine checkup</p>
+                    </div>
+                    <div>
+                        <h3>Notes:</h3>
+                        <p>Chest X-ray appears normal</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diagnosis-card">
+                <div class="diagnosis-main-row">
+                    <div class="patient-summary">
+                        <span>Sophia Davis</span>
+                        <span class="id">ID: P003</span>
+                        <span>Age: 12 • female</span>
+                    </div>
+                    <div class="diagnosis-details">
+                        <span class="badge pneumonia">Pneumonia</span>
+                        <span class="confidence">75.0% confidence</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Pending Review</span>
+                        <span class="value">Dr. Smith</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/9/2024</span>
+                        <span class="time"><i class="fas fa-clock"></i> 2:20:00 PM</span>
+                    </div>
+                    <a href="#" class="view-details-btn">View Details</a>
+                </div>
+                <div class="symptoms-notes-row">
+                    <div>
+                        <h3>Symptoms:</h3>
+                        <p>Persistent cough, mild fever</p>
+                    </div>
+                    <div>
+                        <h3>Notes:</h3>
+                        <p>Requires further evaluation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="/path/to/your/compiled/globals.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white p-6 border-b border-gray-200 flex justify-between items-center">
+        <h1 class="text-xl font-bold flex items-center">
+            PneumoAI Admin
+        </h1>
+        <div class="flex items-center space-x-2">
+            <button class="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200">
+                <i class="fas fa-cog mr-2"></i> Settings
+            </button>
+            <button class="flex items-center px-4 py-2 text-white bg-purple-600 rounded-full hover:bg-purple-700">
+                <i class="fas fa-lock mr-2"></i> Security
+            </button>
+        </div>
+    </header>
+
+    <main class="p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-2xl font-bold">Admin Dashboard</h2>
+                <p class="text-gray-500">System overview and management</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Total Diagnoses</h3>
+                    <i class="fas fa-chart-line text-purple-500"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">156</div>
+                <p class="text-sm text-gray-400">+12% from last month</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Active Users</h3>
+                    <i class="fas fa-users text-green-500"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">2</div>
+                <p class="text-sm text-gray-400">Doctors currently active</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Accuracy Rate</h3>
+                    <i class="fas fa-chart-line text-purple-500"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">94.0%</div>
+                <p class="text-sm text-gray-400">AI prediction accuracy</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Pending Reviews</h3>
+                    <i class="fas fa-clock text-orange-500"></i>
+                </div>
+                <div class="text-3xl font-bold mb-1">1</div>
+                <p class="text-sm text-gray-400">Awaiting doctor confirmation</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-lg font-medium">Monthly Diagnosis Trends</h3>
+                <p class="text-sm text-gray-500 mb-4">Diagnosis volume and pneumonia detection over time</p>
+                <div class="relative h-64">
+                    <div class="absolute inset-0 flex items-end justify-between px-4 pb-4">
+                        <div class="w-1/5 h-3/4 bg-blue-500 rounded-t-lg"></div>
+                        <div class="w-1/5 h-2/4 bg-blue-500 rounded-t-lg"></div>
+                        <div class="w-1/5 h-3/4 bg-blue-500 rounded-t-lg"></div>
+                        <div class="w-1/5 h-1/4 bg-blue-500 rounded-t-lg"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-lg font-medium">Diagnosis Distribution</h3>
+                <p class="text-sm text-gray-500 mb-4">Breakdown of AI predictions</p>
+                <div class="relative h-64 flex items-center justify-center">
+                    <div class="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center">
+                        <div class="w-20 h-20 bg-white rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-lg font-medium mb-4">Recent Activity</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-file-medical text-blue-500"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-medium">New diagnosis submitted</p>
+                            <p class="text-sm text-gray-500">by Dr. Smith</p>
+                        </div>
+                        <span class="text-xs text-gray-400">2 hours ago</span>
+                    </div>
+                    </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-lg font-medium mb-4">System Status</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-microchip text-green-500 mr-2"></i>
+                            <span class="text-sm font-medium">AI Model</span>
+                        </div>
+                        <span class="text-sm text-green-500">Online</span>
+                    </div>
+                    </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

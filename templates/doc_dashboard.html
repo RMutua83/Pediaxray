@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --background-light: #f0f4f8;
+            --background-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --primary-blue: #2563eb;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-light: #e5e7eb;
+            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            --card-border-radius: 0.75rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background-color: var(--background-white);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo svg {
+            color: var(--primary-blue);
+            margin-right: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .header .css-badge {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .main-container {
+            padding: 2rem 3rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero-section h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--background-white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--card-border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card .icon-circle {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .card-1 .icon-circle {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .card-2 .icon-circle {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .card-3 .icon-circle {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .card-description {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .card button {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .card-1 button {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+        }
+
+        .card-1 button:hover {
+            background-color: #1e40af;
+        }
+
+        .card-2 button,
+        .card-3 button {
+            background-color: var(--background-white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+
+        .card-2 button:hover,
+        .card-3 button:hover {
+            background-color: var(--border-light);
+        }
+
+        .recent-activity {
+            background-color: var(--background-white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--card-border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .recent-activity h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .recent-activity .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .activity-details p {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .activity-details .subtext {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            PneumoAI
+        </div>
+        <div class="css-badge">CSS</div>
+    </header>
+
+    <main class="main-container">
+        <section class="hero-section">
+            <h1>Advanced AI-powered pediatric pneumonia detection from chest X-rays</h1>
+        </section>
+
+        <section class="dashboard-grid">
+            <div class="card card-1">
+                <div class="icon-circle">
+                    <i class="fas fa-upload"></i>
+                </div>
+                <h2 class="card-title">New Diagnosis</h2>
+                <p class="card-description">Upload chest X-ray for AI analysis</p>
+                <button>Start Analysis</button>
+            </div>
+
+            <div class="card card-2">
+                <div class="icon-circle">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h2 class="card-title">Case History</h2>
+                <p class="card-description">Review previous diagnoses and results</p>
+                <button>View History</button>
+            </div>
+
+            <div class="card card-3">
+                <div class="icon-circle">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h2 class="card-title">Patient Management</h2>
+                <p class="card-description">Manage patient records and information</p>
+                <button>Manage Patients</button>
+            </div>
+        </section>
+
+        <section class="recent-activity">
+            <h2>Recent Activity</h2>
+            <p class="subtitle">Latest diagnoses and system updates</p>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <p>Emma Wilson (P001)</p>
+                        <p class="subtext">Pneumonia detected - Confidence: 87.5%</p>
+                    </div>
+                    <span class="activity-time">2 hours ago</span>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <p>Liam Brown (P002)</p>
+                        <p class="subtext">Normal chest X-ray - Confidence: 92.0%</p>
+                    </div>
+                    <span class="activity-time">5 hours ago</span>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <p>Sophia Davis (P003)</p>
+                        <p class="subtext">Pending review - Confidence: 75.0%</p>
+                    </div>
+                    <span class="activity-time">1 day ago</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
