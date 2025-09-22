@@ -12,7 +12,7 @@
       theme: {
         extend: {
           colors: {
-            background: "#e0e7ff",
+            background: "#f0f4f8",
             foreground: "#0a0a0a",
             card: "#ecfeff",
             "card-foreground": "#0a0a0a",
@@ -45,7 +45,7 @@
       </div>
       <div class="hidden md:flex items-center space-x-8">
         <a href="#features" class="text-muted-foreground hover:text-foreground">Features</a>
-        <a href="#" class="px-4 py-2 border rounded bg-transparent">Sign In</a>
+        <a href="{{ url_for('login') }}" class="px-4 py-2 border rounded bg-transparent">Sign In</a>
         <!--a href="#" class="px-4 py-2 bg-primary text-white rounded">Get Started</a-->
       </div>
     </div>
@@ -63,7 +63,7 @@
       Advanced AI technology for accurate pediatric pneumonia detection from chest X-rays.
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="#" class="px-8 py-3 bg-primary text-white rounded">
+      <a href="{{ url_for('login') }}" class="px-8 py-3 bg-primary text-white rounded">
         Start Diagnosis →
       </a>
       <!--<a href="#" class="px-8 py-3 border rounded bg-transparent">Watch Demo</a>-->

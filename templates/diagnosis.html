@@ -42,23 +42,19 @@
             font-size: 1.5rem;
             font-weight: 600;
             color: var(--text-dark);
-            display: flex;
-            align-items: center;
         }
 
-        .header .logo svg {
-            color: var(--primary-blue);
-            margin-right: 0.5rem;
-            width: 2rem;
-            height: 2rem;
-        }
-
-        .header .css-badge {
+        .header .logout-btn {
             background-color: var(--primary-blue);
             color: #ffffff;
             padding: 0.5rem 1rem;
             border-radius: 9999px;
             font-weight: 500;
+            text-decoration: none;
+        }
+
+        .header .logout-btn:hover {
+            background-color: #1e40af;
         }
 
         .main-container {
@@ -71,17 +67,16 @@
             margin-bottom: 2rem;
         }
         
-        .page-header a {
+        .page-header a.back-link {
             color: var(--text-gray);
             text-decoration: none;
             font-weight: 500;
             display: flex;
             align-items: center;
             margin-right: 2rem;
-            transition: color 0.2s;
         }
 
-        .page-header a:hover {
+        .page-header a.back-link:hover {
             color: var(--primary-blue);
         }
 
@@ -105,10 +100,6 @@
             box-shadow: var(--card-shadow);
         }
 
-        .card-header {
-            margin-bottom: 1.5rem;
-        }
-
         .card-header h2 {
             font-size: 1.25rem;
             font-weight: 600;
@@ -118,14 +109,13 @@
         .card-header p {
             font-size: 0.9rem;
             color: var(--text-gray);
-            margin: 0.25rem 0 0;
+            margin: 0.25rem 0 1rem;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
-            margin-bottom: 1.5rem;
         }
         
         .form-group {
@@ -154,11 +144,6 @@
             color: var(--text-dark);
         }
         
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--text-gray);
-        }
-
         .form-group textarea {
             min-height: 100px;
             resize: vertical;
@@ -186,92 +171,108 @@
         .file-upload-area p {
             font-size: 0.9rem;
             color: var(--text-dark);
-            margin: 0;
+            margin: 0.25rem 0;
         }
 
-        .file-upload-area a {
-            color: var(--primary-blue);
-            text-decoration: none;
-            font-weight: 500;
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .submit-btn {
+            margin-top: 1.5rem;
+            background-color: var(--primary-blue);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: #1e40af;
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <div class="logo">
-            PneumoAI
-        </div>
-        <div class="css-badge">CSS</div>
+        <div class="logo">PneumoAI</div>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
     </header>
 
     <main class="main-container">
         <div class="page-header">
-            <a href="#">
+            <a href="{{ url_for('doctor_dashboard') }}" class="back-link">
                 <i class="fas fa-arrow-left"></i> &nbsp; Back to Dashboard
             </a>
             <h1>New Diagnosis</h1>
         </div>
 
-        <div class="content-grid">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Patient Information</h2>
-                    <p>Enter patient details for the diagnosis</p>
+        <form action="#" method="POST" enctype="multipart/form-data">
+            <div class="content-grid">
+                <!-- Patient Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Patient Information</h2>
+                        <p>Enter patient details for the diagnosis</p>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="patient-id">Patient ID</label>
+                            <input type="text" id="patient-id" name="patient_id" value="P001">
+                        </div>
+                        <div class="form-group">
+                            <label for="patient-name">Patient Name</label>
+                            <input type="text" id="patient-name" name="patient_name" value="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender">
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Weight (Kg)</label>
+                            <input type="number" id="weight" name="weight" value="25.5">
+                        </div>
+                        <div></div>
+                        <div class="form-group full-width">
+                            <label for="symptoms">Symptoms</label>
+                            <textarea id="symptoms" name="symptoms" placeholder="Describe the patient's symptoms..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="medical-history">Medical History</label>
+                            <textarea id="medical-history" name="medical_history" placeholder="Any relevant medical history..."></textarea>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="patient-id">Patient ID</label>
-                        <input type="text" id="patient-id" value="P001">
+                <!-- X-ray Upload -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Chest X-ray Analysis</h2>
+                        <p>Upload chest X-ray image for AI analysis</p>
                     </div>
-                    <div class="form-group">
-                        <label for="patient-name">Patient Name</label>
-                        <input type="text" id="patient-name" value="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="age">Age</label>
-                        <input type="number" id="age" value="8">
-                    </div>
-                    <div class="form-group">
-                        <label for="gender">Gender</label>
-                        <select id="gender">
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="weight">Weight (Kg)</label>
-                        <input type="number" id="weight" value="25.5">
-                    </div>
-                    <div></div>
-                    <div class="form-group full-width">
-                        <label for="symptoms">Symptoms</label>
-                        <textarea id="symptoms" placeholder="Describe the patient's symptoms..."></textarea>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="medical-history">Medical History</label>
-                        <textarea id="medical-history" placeholder="Any relevant medical history..."></textarea>
-                    </div>
-                </div>
-            </div>
+                    
+                    <label class="file-upload-area">
+                        <i class="#"></i>
+                        <p>Click to upload or drag and drop</p>
+                        <p>PNG, JPG up to 10MB</p>
+                        <input type="file" name="xray_image" accept="image/png, image/jpeg" required>
+                    </label>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2>Chest X-ray Analysis</h2>
-                    <p>Upload chest X-ray image for AI analysis</p>
-                </div>
-                
-                <div class="file-upload-area">
-                    <i class="fas fa-upload upload-icon"></i>
-                    <p>
-                        <a href="#">Click to upload</a> or drag and drop
-                    </p>
-                    <p>PNG, JPG up to 10MB</p>
+                    <button type="submit" class="submit-btn">Submit for Analysis</button>
                 </div>
             </div>
-        </div>
+        </form>
     </main>
 </body>
 </html>
