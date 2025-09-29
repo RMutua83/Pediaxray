@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #164e63;
+        }
+        .patient-info {
+            margin-bottom: 20px;
+        }
+        .patient-info p {
+            margin: 5px 0;
+        }
+        .images {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .images img {
+            max-width: 45%;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .confidence {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .buttons a {
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            background: #164e63;
+            transition: 0.3s;
+        }
+        .buttons a:hover {
+            background: #0f3b4c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Prediction Result</h2>
+
+        <div class="patient-info">
+            <p><strong>Patient ID:</strong> {{ diagnosis.patient_id }}</p>
+            <p><strong>Name:</strong> {{ diagnosis.patient_name }}</p>
+            <p><strong>Age:</strong> {{ diagnosis.age }}</p>
+            <p><strong>Gender:</strong> {{ diagnosis.gender }}</p>
+            <p><strong>Weight:</strong> {{ diagnosis.weight }} kg</p>
+            <p><strong>Symptoms:</strong> {{ diagnosis.symptoms }}</p>
+            <p><strong>Medical History:</strong> {{ diagnosis.medical_history }}</p>
+        </div>
+
+        <div class="images">
+            <div>
+                <p style="text-align:center;"><strong>Original X-ray</strong></p>
+                <img src="{{ diagnosis.xray_url }}" alt="X-ray Image">
+            </div>
+            <div>
+                <p style="text-align:center;"><strong>Grad-CAM Visualization</strong></p>
+                <img src="{{ gradcam_url }}" alt="Grad-CAM">
+            </div>
+        </div>
+
+        <div class="confidence">
+            <strong>Confidence Score:</strong> {{ confidence }}%
+        </div>
+
+        <div class="buttons">
+            <a href="{{ url_for('download_report', diagnosis_id=diagnosis.id) }}">Download Report</a>
+            <a href="{{ url_for('diagnosis') }}">Back to Diagnosis</a>
+        </div>
+    </div>
+</body>
+</html>

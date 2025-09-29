@@ -46,13 +46,6 @@
             align-items: center;
         }
 
-        .header .logo svg {
-            color: var(--primary-blue);
-            margin-right: 0.5rem;
-            width: 2rem;
-            height: 2rem;
-        }
-
         .header .css-badge {
             background-color: var(--primary-blue);
             color: #ffffff;
@@ -316,156 +309,100 @@
 </head>
 <body>
 
-    <header class="header">
-        <div class="logo">
-            PneumoAI
-        </div>
-        <div class="css-badge">CSS</div>
-    </header>
+<header class="header">
+    <div class="logo">
+        PneumoAI
+    </div>
+    <div class="css-badge">CSS</div>
+</header>
 
-    <main class="main-container">
-        <div class="page-header">
-            <div class="page-header-left">
-                <a href="#">
-                    <i class="fas fa-arrow-left"></i> &nbsp; Back to Dashboard
-                </a>
-                <h1>Diagnosis History</h1>
-            </div>
-            <a href="#" class="export-btn">
-                <i class="fas fa-file-export"></i> Export Report
+<main class="main-container">
+    <div class="page-header">
+        <div class="page-header-left">
+            <a href="{{ url_for('doctor_dashboard') }}">
+                <i class="fas fa-arrow-left"></i> &nbsp; Back to Dashboard
             </a>
+            <h1>Diagnosis History</h1>
         </div>
+        <a href="#" class="export-btn">
+            <i class="fas fa-file-export"></i> Export Report
+        </a>
+    </div>
 
-        <div class="search-filter-card">
-            <h2>Search & Filter</h2>
-            <p>Find specific diagnoses and filter by status or prediction</p>
-            <div class="filter-grid">
-                <div class="search-input-container">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search by patient name or ID...">
-                </div>
-                <div class="filter-dropdown">
-                    <select>
-                        <option>All Statuses</option>
-                        <option>Confirmed</option>
-                        <option>Pending Review</option>
-                    </select>
-                </div>
-                <div class="filter-dropdown">
-                    <select>
-                        <option>All Predictions</option>
-                        <option>Pneumonia</option>
-                        <option>Normal</option>
-                    </select>
-                </div>
-                <button class="advanced-filters-btn">
-                    <i class="fas fa-filter"></i> Advanced Filters
-                </button>
+    <div class="search-filter-card">
+        <h2>Search & Filter</h2>
+        <p>Find specific diagnoses and filter by status or prediction</p>
+        <div class="filter-grid">
+            <div class="search-input-container">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search by patient name or ID...">
             </div>
+            <div class="filter-dropdown">
+                <select>
+                    <option>All Statuses</option>
+                    <option>Confirmed</option>
+                    <option>Pending Review</option>
+                </select>
+            </div>
+            <div class="filter-dropdown">
+                <select>
+                    <option>All Predictions</option>
+                    <option>Pneumonia</option>
+                    <option>Normal</option>
+                </select>
+            </div>
+            <button class="advanced-filters-btn">
+                <i class="fas fa-filter"></i> Advanced Filters
+            </button>
         </div>
-        
-        <p class="diagnosis-count">Showing 3 of 3 diagnoses</p>
+    </div>
 
-        <div class="diagnosis-list">
+    <p class="diagnosis-count">Showing {{ diagnoses|length }} diagnoses</p>
+
+    <div class="diagnosis-list">
+        {% if diagnoses %}
+            {% for d in diagnoses %}
             <div class="diagnosis-card">
                 <div class="diagnosis-main-row">
                     <div class="patient-summary">
-                        <span>Emma Wilson</span>
-                        <span class="id">ID: P001</span>
-                        <span>Age: 8 • female</span>
+                        <span>{{ d.patient_name }}</span>
+                        <span class="id">ID: {{ d.patient_id }}</span>
+                        <span>Age: {{ d.age }} • {{ d.gender }}</span>
                     </div>
                     <div class="diagnosis-details">
-                        <span class="badge pneumonia">Pneumonia</span>
-                        <span class="confidence">87.5% confidence</span>
+                        {% if d.prediction == 'Pneumonia' %}
+                            <span class="badge pneumonia">{{ d.prediction }}</span>
+                        {% else %}
+                            <span class="badge normal">{{ d.prediction }}</span>
+                        {% endif %}
+                        <span class="confidence">{{ d.confidence }}% confidence</span>
                     </div>
                     <div class="info-item">
-                        <span class="label">Confirmed</span>
-                        <span class="value">Dr. Smith</span>
+                        <span class="label">{{ d.status or 'Pending' }}</span>
+                        <span class="value">{{ d.doctor_name or 'Dr.' }}</span>
                     </div>
                     <div class="info-item">
-                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/8/2024</span>
-                        <span class="time"><i class="fas fa-clock"></i> 1:30:05 PM</span>
+                        <span class="date"><i class="fas fa-calendar-alt"></i> {{ d.created_at[:10] }}</span>
+                        <span class="time"><i class="fas fa-clock"></i> {{ d.created_at[11:19] }}</span>
                     </div>
-                    <a href="#" class="view-details-btn">View Details</a>
+                    <a href="{{ url_for('prediction_from_history', diagnosis_id=d.id) }}" class="view-details-btn">View Details</a>
                 </div>
                 <div class="symptoms-notes-row">
                     <div>
                         <h3>Symptoms:</h3>
-                        <p>Fever, cough, difficulty breathing</p>
+                        <p>{{ d.symptoms }}</p>
                     </div>
                     <div>
                         <h3>Notes:</h3>
-                        <p>Clear signs of pneumonia in right lower lobe</p>
+                        <p>{{ d.medical_history }}</p>
                     </div>
                 </div>
             </div>
-
-            <div class="diagnosis-card">
-                <div class="diagnosis-main-row">
-                    <div class="patient-summary">
-                        <span>Liam Brown</span>
-                        <span class="id">ID: P002</span>
-                        <span>Age: 5 • male</span>
-                    </div>
-                    <div class="diagnosis-details">
-                        <span class="badge normal">Normal</span>
-                        <span class="confidence">92.0% confidence</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Confirmed</span>
-                        <span class="value">Dr. Johnson</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/7/2024</span>
-                        <span class="time"><i class="fas fa-clock"></i> 12:15:00 PM</span>
-                    </div>
-                    <a href="#" class="view-details-btn">View Details</a>
-                </div>
-                <div class="symptoms-notes-row">
-                    <div>
-                        <h3>Symptoms:</h3>
-                        <p>Routine checkup</p>
-                    </div>
-                    <div>
-                        <h3>Notes:</h3>
-                        <p>Chest X-ray appears normal</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="diagnosis-card">
-                <div class="diagnosis-main-row">
-                    <div class="patient-summary">
-                        <span>Sophia Davis</span>
-                        <span class="id">ID: P003</span>
-                        <span>Age: 12 • female</span>
-                    </div>
-                    <div class="diagnosis-details">
-                        <span class="badge pneumonia">Pneumonia</span>
-                        <span class="confidence">75.0% confidence</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Pending Review</span>
-                        <span class="value">Dr. Smith</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="date"><i class="fas fa-calendar-alt"></i> 1/9/2024</span>
-                        <span class="time"><i class="fas fa-clock"></i> 2:20:00 PM</span>
-                    </div>
-                    <a href="#" class="view-details-btn">View Details</a>
-                </div>
-                <div class="symptoms-notes-row">
-                    <div>
-                        <h3>Symptoms:</h3>
-                        <p>Persistent cough, mild fever</p>
-                    </div>
-                    <div>
-                        <h3>Notes:</h3>
-                        <p>Requires further evaluation</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+            {% endfor %}
+        {% else %}
+            <p>No diagnoses found.</p>
+        {% endif %}
+    </div>
+</main>
 </body>
 </html>

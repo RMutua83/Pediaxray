@@ -1,0 +1,108 @@
+<!-- templates/add_patient.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Patient</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #164e63;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #164e63;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        textarea {
+            resize: vertical;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .buttons button, .buttons a {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: none;
+            background-color: #164e63;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .buttons button:hover, .buttons a:hover {
+            background-color: #0f3b4f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Patient</h1>
+
+        <form id="patientForm" action="{{ url_for('add_patient') }}" method="POST">
+            <label for="patient_name">Name:</label>
+            <input type="text" name="patient_name" required>
+
+            <label for="age">Age:</label>
+            <input type="number" name="age" required>
+
+            <label for="gender">Gender:</label>
+            <select name="gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+
+            <label for="weight">Weight (kg):</label>
+            <input type="number" step="0.1" name="weight">
+
+            <label for="height">Height (cm):</label>
+            <input type="number" step="0.1" name="height">
+
+            <label for="medical_history">Medical History:</label>
+            <textarea name="medical_history" rows="4"></textarea>
+
+            <div class="buttons">
+                <button type="submit" name="action" value="save_add_another">Save & Add Another</button>
+                <a href="{{ url_for('patients') }}">Back to Patients</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Optional: handle the Save & Add Another behavior
+        document.getElementById('patientForm').addEventListener('submit', function(event) {
+            const action = event.submitter.value;
+            if (action === 'save_add_another') {
+                // Let the form submit normally
+                // After redirect, doctor can add another patient
+            }
+        });
+    </script>
+</body>
+</html>
