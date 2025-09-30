@@ -14,7 +14,7 @@ This project focuses on delivering **high-confidence predictions** and **model i
 * **AI Diagnostics:** Instant classification of X-rays into **Normal**, **Bacterial Pneumonia**, or **Viral Pneumonia**.
 * **Confidence Scoring:** Provides detailed percentage breakdowns for each class, highlighting cases that require mandatory physician review.
 * **Model Interpretability (Grad-CAM):** Generates and displays heatmaps showing the specific regions of the X-ray the AI model focused on when making its prediction.
-* **Professional Reporting:** One-click generation of a polished, print-ready report containing all patient, clinical, AI, and image data.
+* **Data Export (CSV):** One-click generation of a **CSV file** containing structured case data, ideal for bulk analysis and record-keeping.
 * **Case Management:** Doctors can save the AI prediction, add their official diagnosis and notes, and finalize the case record.
 
 ---
@@ -26,7 +26,7 @@ This project focuses on delivering **high-confidence predictions** and **model i
 | **Backend Framework** | **Python 3** (Flask) | Lightweight web server and application logic. |
 | **Database** | **Supabase** (PostgreSQL) | Scalable backend service for data storage (diagnoses, patients) and file storage (X-rays). |
 | **AI/ML** | **TensorFlow / Keras** | Used for training and serving the CNN diagnostic model. |
-| **PDF Generation** | **WeasyPrint** | Converts the prediction web page into a high-fidelity, professional PDF report. |
+| **Data Processing** | **`csv`, `io.StringIO`** | Handles the efficient in-memory creation and streaming of the CSV data export. |
 | **Front-end** | **HTML5, CSS3** (Jinja2 Templates) | Clean, intuitive, and professional UI/UX for clinical use. |
 | **Image Processing** | **PIL/Pillow, Base64** | Handling image uploads and displaying Grad-CAM visualizations. |
 
