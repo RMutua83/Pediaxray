@@ -6,6 +6,7 @@
     <title>PneumoAI - Diagnosis History</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* CSS from your initial file is kept here */
         :root {
             --background-light: #f0f4f8;
             --background-white: #ffffff;
@@ -15,6 +16,7 @@
             --accent-purple: #8b5cf6;
             --accent-green: #10b981;
             --accent-red: #ef4444;
+            --accent-orange: #f97316; /* Added for VIRAL */
             --border-light: #e5e7eb;
             --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             --card-border-radius: 0.75rem;
@@ -46,6 +48,19 @@
             align-items: center;
         }
 
+        .header .logout-btn {
+            text-decoration: none;
+            color: var(--text-dark);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .header .logout-btn:hover {
+            background-color: var(--border-light);
+        }
+        
         .header .css-badge {
             background-color: var(--primary-blue);
             color: #ffffff;
@@ -60,8 +75,8 @@
 
         .page-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
         }
         
@@ -196,11 +211,17 @@
             padding: 1.5rem;
             box-shadow: var(--card-shadow);
             margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .diagnosis-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         }
 
         .diagnosis-main-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1fr;
+            grid-template-columns: 2fr 1fr 1.5fr 1fr 0.5fr;
             gap: 1rem;
             align-items: center;
             padding-bottom: 1rem;
@@ -236,8 +257,9 @@
             width: fit-content;
         }
 
-        .badge.pneumonia {
-            background-color: var(--accent-red);
+        /* Updated badge classes for the 3 prediction types */
+        .badge.bacterial, .badge.viral {
+            background-color: var(--accent-red); /* Use red for any type of Pneumonia */
             color: #ffffff;
         }
 
@@ -271,18 +293,21 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .info-item .view-details-btn {
+        .view-details-btn {
             background: none;
             border: none;
             color: var(--primary-blue);
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
+            text-align: right;
+            white-space: nowrap;
         }
         
-        .info-item .view-details-btn:hover {
+        .view-details-btn:hover {
             text-decoration: underline;
         }
         
@@ -291,6 +316,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
             font-size: 0.9rem;
+            padding-top: 0.5rem;
         }
         
         .symptoms-notes-row h3 {
@@ -304,16 +330,28 @@
             margin: 0;
             color: var(--text-gray);
         }
-
+        
+        .no-diagnoses {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-gray);
+            border: 1px dashed var(--border-light);
+            border-radius: var(--card-border-radius);
+            margin-top: 20px;
+        }
+        
+        .no-diagnoses a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
 
 <header class="header">
-    <div class="logo">
-        PneumoAI
-    </div>
-    <div class="css-badge">CSS</div>
+    <div class="logo">PneumoAI</div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
 </header>
 
 <main class="main-container">
@@ -324,7 +362,7 @@
             </a>
             <h1>Diagnosis History</h1>
         </div>
-        <a href="#" class="export-btn">
+        <a href="{{ url_for('export_history') }}" class="export-btn">
             <i class="fas fa-file-export"></i> Export Report
         </a>
     </div>
@@ -347,8 +385,9 @@
             <div class="filter-dropdown">
                 <select>
                     <option>All Predictions</option>
-                    <option>Pneumonia</option>
                     <option>Normal</option>
+                    <option>Bacterial</option>
+                    <option>Viral</option>
                 </select>
             </div>
             <button class="advanced-filters-btn">
@@ -357,50 +396,67 @@
         </div>
     </div>
 
-    <p class="diagnosis-count">Showing {{ diagnoses|length }} diagnoses</p>
+    <p class="diagnosis-count">Showing {{ history_records|length }} diagnoses</p>
 
     <div class="diagnosis-list">
-        {% if diagnoses %}
-            {% for d in diagnoses %}
+        {% if history_records %}
+            {% for record in history_records %}
             <div class="diagnosis-card">
                 <div class="diagnosis-main-row">
                     <div class="patient-summary">
-                        <span>{{ d.patient_name }}</span>
-                        <span class="id">ID: {{ d.patient_id }}</span>
-                        <span>Age: {{ d.age }} • {{ d.gender }}</span>
+                        <span>{{ record.patients.name or 'N/A' }}</span>
+                        <span class="id">Patient ID: {{ record.patient_id }}</span>
+                        <span>Age: {{ record.patients.age or 'N/A' }} • Gender: {{ record.patients.gender or 'N/A' }}</span>
                     </div>
+                    
                     <div class="diagnosis-details">
-                        {% if d.prediction == 'Pneumonia' %}
-                            <span class="badge pneumonia">{{ d.prediction }}</span>
+                        {% set prediction_result = record.prediction_result | upper | default("PENDING") %}
+                        {% set confidence_score = record.prediction_confidence | default("N/A") %}
+
+                        {% if prediction_result == 'NORMAL' %}
+                            <span class="badge normal">{{ prediction_result }}</span>
+                        {% elif prediction_result in ['BACTERIAL', 'VIRAL'] %}
+                            <span class="badge bacterial">{{ prediction_result }}</span>
                         {% else %}
-                            <span class="badge normal">{{ d.prediction }}</span>
+                            <span class="badge pending">N/A</span>
                         {% endif %}
-                        <span class="confidence">{{ d.confidence }}% confidence</span>
+                        
+                        <span class="confidence">{{ confidence_score }}% confidence</span>
                     </div>
+                    
                     <div class="info-item">
-                        <span class="label">{{ d.status or 'Pending' }}</span>
-                        <span class="value">{{ d.doctor_name or 'Dr.' }}</span>
+                        <span class="label">Status:</span>
+                        <span class="value">{{ record.status or 'Pending Review' }}</span> 
                     </div>
+                    
                     <div class="info-item">
-                        <span class="date"><i class="fas fa-calendar-alt"></i> {{ d.created_at[:10] }}</span>
-                        <span class="time"><i class="fas fa-clock"></i> {{ d.created_at[11:19] }}</span>
+                       {% set timestamp_parts = record.created_at.split('T') if record.created_at else ['', ''] %}
+                       <span class="date"><i class="fas fa-calendar-alt"></i> {{ record.display_date or timestamp_parts[0] }}</span>
+                       <span class="time"><i class="fas fa-clock"></i> {{ record.display_time or timestamp_parts[1][:8] }}</span>
                     </div>
-                    <a href="{{ url_for('prediction_from_history', diagnosis_id=d.id) }}" class="view-details-btn">View Details</a>
+                    
+                    <a href="{{ url_for('prediction', diagnosis_id=record.id) }}" class="view-details-btn">
+                        View Details <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
                 </div>
+                
                 <div class="symptoms-notes-row">
                     <div>
                         <h3>Symptoms:</h3>
-                        <p>{{ d.symptoms }}</p>
+                        <p>{{ record.symptoms or 'No symptoms recorded.' }}</p>
                     </div>
                     <div>
-                        <h3>Notes:</h3>
-                        <p>{{ d.medical_history }}</p>
+                        <h3>Medical History:</h3>
+                        <p>{{ record.patients.medical_history or 'No history recorded.' }}</p> 
                     </div>
                 </div>
             </div>
             {% endfor %}
         {% else %}
-            <p>No diagnoses found.</p>
+            <div class="no-diagnoses">
+                <p>You haven't performed any diagnoses yet.</p>
+                <a href="{{ url_for('diagnosis') }}">Click here to start a new diagnosis.</a>
+            </div>
         {% endif %}
     </div>
 </main>

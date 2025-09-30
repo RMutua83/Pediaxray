@@ -18,6 +18,11 @@
             --border-light: #e5e7eb;
             --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             --card-border-radius: 0.75rem;
+            /* Alert Colors */
+            --alert-success-bg: #d1e7dd;
+            --alert-success-text: #0f5132;
+            --alert-danger-bg: #f8d7da;
+            --alert-danger-text: #842029;
         }
 
         body {
@@ -54,6 +59,10 @@
             text-decoration: none;
             display: flex;
             align-items: center;
+            transition: background-color 0.2s;
+        }
+        .header .logout-btn:hover {
+             background-color: #1e40af;
         }
 
         .header .logout-btn i {
@@ -149,6 +158,11 @@
             transition: background-color 0.2s;
         }
 
+        .card a {
+            width: 100%;
+            text-decoration: none;
+        }
+
         .card-1 button {
             background-color: var(--primary-blue);
             color: #ffffff;
@@ -207,6 +221,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            flex-grow: 1; /* Allows details to take up space */
         }
 
         .activity-details p {
@@ -223,6 +238,32 @@
             font-size: 0.85rem;
             color: var(--text-gray);
             white-space: nowrap;
+            margin-right: 1rem; /* Spacing before the button */
+        }
+
+        /* NEW: System Status Alert */
+        .system-alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .alert-success {
+            background-color: var(--alert-success-bg);
+            color: var(--alert-success-text);
+            border: 1px solid #badbcc;
+        }
+
+        .alert-danger {
+            background-color: var(--alert-danger-bg);
+            color: var(--alert-danger-text);
+            border: 1px solid #f5c2c7;
         }
     </style>
 </head>
@@ -239,9 +280,19 @@
 
     <main class="main-container">
         <section class="hero-section">
-            <h1 class="text-3xl font-bold">Welcome, Dr. {{ user.name }}</h1>
+            <h1>Welcome, Dr. {{ user.name | default("User") }}</h1>
             <p>Advanced AI-powered pediatric pneumonia detection from chest X-rays</p>
         </section>
+
+        {% if app_status == 'MAINTENANCE' %}
+        <div class="system-alert alert-danger">
+            <i class="fas fa-tools"></i> **SYSTEM ALERT:** AI services are currently under **MAINTENANCE**. Predictions may be unavailable.
+        </div>
+        {% else %}
+        <div class="system-alert alert-success">
+            <i class="fas fa-check-circle"></i> AI System is **ONLINE** and running smoothly.
+        </div>
+        {% endif %}
 
         <section class="dashboard-grid">
             <div class="card card-1">
@@ -274,31 +325,35 @@
 
         <section class="recent-activity">
             <h2>Recent Activity</h2>
-            <p class="subtitle">Latest diagnoses and system updates</p>
+            <p class="subtitle">Latest diagnoses submitted by you</p>
             <div class="activity-list">
+                {% for item in recent_diagnoses %} <div class="activity-item">
+                    <div class="activity-details">
+                        <p>
+                            {{ item.patients.name or 'Unknown Patient' }} 
+                            <span style="color: var(--text-gray); font-size: 0.8em;">(ID: {{ item.id[:8] }})</span>
+                        </p>
+                        <p class="subtext">
+                            **Result:** {{ item.prediction_result | default('Pending') }} 
+                            {% if item.prediction_confidence %}
+                                - **Confidence:** {{ item.prediction_confidence }}%
+                            {% endif %}
+                        </p>
+                    </div>
+                    <span class="activity-time">{{ item.display_time or item.created_at.split('T')[1][:5] }}</span>
+                    <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="btn-link" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">View</a>
+                </div>
+                {% else %}
                 <div class="activity-item">
                     <div class="activity-details">
-                        <p>Emma Wilson (P001)</p>
-                        <p class="subtext">Pneumonia detected - Confidence: 87.5%</p>
+                        <p>No recent activity found.</p>
+                        <p class="subtext">Start a <a href="{{ url_for('diagnosis') }}">new diagnosis</a> to see results here.</p>
                     </div>
-                    <span class="activity-time">2 hours ago</span>
                 </div>
-                <div class="activity-item">
-                    <div class="activity-details">
-                        <p>Liam Brown (P002)</p>
-                        <p class="subtext">Normal chest X-ray - Confidence: 92.0%</p>
-                    </div>
-                    <span class="activity-time">5 hours ago</span>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-details">
-                        <p>Sophia Davis (P003)</p>
-                        <p class="subtext">Pending review - Confidence: 75.0%</p>
-                    </div>
-                    <span class="activity-time">1 day ago</span>
-                </div>
+                {% endfor %}
             </div>
         </section>
+
     </main>
 </body>
 </html>

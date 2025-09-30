@@ -65,9 +65,64 @@
 
       <!-- Dashboard Section -->
       <div id="dashboard-section" class="section active bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-        <h3 class="text-lg font-medium mb-4">Dashboard Overview</h3>
-        <p>Summary stats, charts, KPIs can go here.</p>
-      </div>
+    <h3 class="text-2xl font-semibold mb-6 text-sky-700">System Overview</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-sky-50 p-4 rounded-xl shadow-sm border border-sky-200">
+            <p class="text-sm font-medium text-sky-600">Total Users</p>
+            <p class="text-3xl font-bold mt-1">{{ total_users or '0' }}</p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
+            <p class="text-sm font-medium text-green-600">Total Diagnoses</p>
+            <p class="text-3xl font-bold mt-1">{{ total_diagnoses or '0' }}</p>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
+            <p class="text-sm font-medium text-yellow-600">Pneumonia Cases</p>
+            <p class="text-3xl font-bold mt-1">{{ pneumonia_count or '0' }}</p>
+        </div>
+        <div class="bg-red-50 p-4 rounded-xl shadow-sm border border-red-200">
+            <p class="text-sm font-medium text-red-600">Pending Reviews</p>
+            <p class="text-3xl font-bold mt-1">{{ pending_count or '0' }}</p>
+        </div>
+    </div>
+    
+    <h3 class="text-lg font-medium mb-4 border-b pb-2">Recent System Activity (Last 10)</h3>
+
+    <div class="activity-list space-y-3">
+        {% for item in recent_activity %}
+        <div class="activity-item bg-gray-50 p-3 rounded-lg border border-gray-200 hover:bg-gray-100">
+            <div class="flex justify-between items-center">
+                <div class="activity-details">
+                    <p class="mb-0 font-semibold text-gray-700">
+                        Diagnosis for **{{ item.patients.name or 'Unknown Patient' }}** <span class="text-xs text-gray-500 ml-2">({{ item.id[:8] }})</span>
+                    </p>
+                    <p class="text-sm mt-0 mb-1">
+                        **Result:** <span class="font-medium {% if 'PNEUMONIA' in item.prediction|upper %}text-red-500{% else %}text-green-500{% endif %}">
+                            {{ item.prediction or 'PENDING' }}
+                        </span> 
+                        {% if item.confidence %}
+                            - Confidence: {{ item.confidence|round(1) }}%
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400">
+                        Submitted by: {{ item.users.name or 'Unknown Doctor' }} 
+                        on {{ item.display_time }}
+                    </p>
+                </div>
+                
+                <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="px-3 py-1 text-sky-600 border border-sky-600 rounded-lg hover:bg-sky-50 text-sm">
+                    View
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert bg-gray-100 p-3 text-center text-gray-500 rounded-lg">
+            No recent diagnosis activity in the system.
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
 
       <!-- Users Section -->
       <div id="users-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
@@ -121,15 +176,66 @@
 
       <!-- Predictions Section -->
       <div id="predictions-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-        <h3 class="text-lg font-medium mb-4">Predictions</h3>
-        <p>Prediction results and stats can go here (dummy data for now).</p>
-      </div>
+    <h3 class="text-lg font-medium mb-4">All System Predictions</h3>
+    
+    <table class="min-w-full border border-gray-200 rounded-lg">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-4 py-2 text-left text-sm font-semibold">Date</th>
+                <th class="px-4 py-2 text-left text-sm font-semibold">Patient Name</th>
+                <th class="px-4 py-2 text-left text-sm font-semibold">Diagnosis ID</th>
+                <th class="px-4 py-2 text-left text-sm font-semibold">Result</th>
+                <th class="px-4 py-2 text-left text-sm font-semibold">Doctor</th>
+                <th class="px-4 py-2 text-center text-sm font-semibold">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for diag in recent_activity %}
+            <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-2 text-sm">{{ diag.display_time.split(' ')[0] }}</td>
+                <td class="px-4 py-2 text-sm">{{ diag.patients.name or 'N/A' }}</td>
+                <td class="px-4 py-2 text-sm text-gray-500">{{ diag.id[:8] }}...</td>
+                <td class="px-4 py-2 text-sm">
+                    <span class="px-2 py-1 rounded text-xs font-semibold 
+                        {% if 'PNEUMONIA' in diag.prediction|upper %}bg-red-100 text-red-600{% else %}bg-green-100 text-green-600{% endif %}">
+                        {{ diag.prediction or 'PENDING' }}
+                    </span>
+                </td>
+                <td class="px-4 py-2 text-sm">{{ diag.users.name or 'N/A' }}</td>
+                <td class="px-4 py-2 text-center">
+                    <a href="{{ url_for('prediction', diagnosis_id=diag.id) }}" class="px-3 py-1 text-sky-600 hover:text-sky-800 text-sm">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="px-4 py-4 text-center text-gray-500">No predictions found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-      <!-- Logs Section -->
+</div>
+
       <div id="logs-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-        <h3 class="text-lg font-medium mb-4">Logs</h3>
-        <p>System logs, user actions, etc.</p>
-      </div>
+    <h3 class="text-lg font-medium mb-4">System Logs & Audit Trail</h3>
+    <p class="text-sm text-gray-500 mb-4">Displaying the last 20 critical system events.</p>
+
+    <div class="space-y-2 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-lg border">
+        {% if system_logs %}
+            {% for log in system_logs %}
+            <div class="text-xs p-2 rounded 
+                {% if 'ERROR' in log.level|upper %}bg-red-100 text-red-700{% elif 'WARN' in log.level|upper %}bg-yellow-100 text-yellow-700{% else %}bg-white text-gray-700{% endif %}">
+                <span class="font-bold mr-2">{{ log.timestamp }}</span>
+                <span class="font-medium">{{ log.level|upper }}:</span>
+                {{ log.message }} (User: {{ log.user_id }})
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-gray-500 p-4">System logs are not yet integrated or available.</p>
+        {% endif %}
+    </div>
+
+</div>
 
       <!-- Settings Section -->
       <div id="settings-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">

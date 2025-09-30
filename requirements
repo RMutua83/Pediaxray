@@ -2,3 +2,7 @@ python
 flask
 supabase
 python-dotenv
+tensorflow
+opencv-python
+matplotlib
+numpy
