@@ -105,6 +105,11 @@
             margin: 0;
         }
 
+        /* Export Button container styles */
+        .export-form {
+            margin: 0;
+        }
+        
         .export-btn {
             background-color: var(--primary-blue);
             color: #ffffff;
@@ -112,6 +117,8 @@
             border-radius: 0.5rem;
             font-weight: 600;
             text-decoration: none;
+            border: none; /* Changed from anchor to button */
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -141,6 +148,17 @@
             font-size: 0.9rem;
             color: var(--text-gray);
             margin: 0 0 1rem;
+        }
+        
+        /* Added button styling for advanced filter */
+        .advanced-filters-btn.reset-btn {
+            background-color: var(--accent-red);
+            color: #ffffff;
+            border-color: var(--accent-red);
+        }
+        .advanced-filters-btn.reset-btn:hover {
+            background-color: #c53030;
+            border-color: #c53030;
         }
 
         .filter-grid {
@@ -190,6 +208,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center; /* Center content in button */
             gap: 0.5rem;
             transition: background-color 0.2s;
         }
@@ -266,6 +285,11 @@
         .badge.normal {
             background-color: var(--accent-green);
             color: #ffffff;
+        }
+        
+        .badge.pending {
+            background-color: var(--text-gray);
+            color: var(--background-white);
         }
 
         .diagnosis-details .confidence {
@@ -351,7 +375,7 @@
 
 <header class="header">
     <div class="logo">PneumoAI</div>
-    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    <!-- <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a> -->
 </header>
 
 <main class="main-container">
@@ -362,46 +386,55 @@
             </a>
             <h1>Diagnosis History</h1>
         </div>
-        <a href="{{ url_for('export_history') }}" class="export-btn">
-            <i class="fas fa-file-export"></i> Export Report
-        </a>
+       <!---- <form class="export-form" action="{{ url_for('export_history') }}" method="GET">
+            <button type="submit" class="export-btn">
+                <i class="fas fa-file-export"></i> Export Report
+            </button>
+        </form> --->
     </div>
 
     <div class="search-filter-card">
         <h2>Search & Filter</h2>
         <p>Find specific diagnoses and filter by status or prediction</p>
-        <div class="filter-grid">
-            <div class="search-input-container">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search by patient name or ID...">
+        <form id="filter-form">
+            <div class="filter-grid">
+                <div class="search-input-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" name="search" placeholder="Search by patient name or ID...">
+                </div>
+                <div class="filter-dropdown">
+                    <select id="status-filter" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Pending Review">Pending Review</option>
+                    </select>
+                </div>
+                <div class="filter-dropdown">
+                    <select id="prediction-filter" name="prediction">
+                        <option value="">All Predictions</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="BACTERIAL">Bacterial</option>
+                        <option value="VIRAL">Viral</option>
+                    </select>
+                </div>
+                <button type="button" id="reset-filters" class="advanced-filters-btn reset-btn">
+                    <i class="fas fa-times-circle"></i> Clear Filters
+                </button>
             </div>
-            <div class="filter-dropdown">
-                <select>
-                    <option>All Statuses</option>
-                    <option>Confirmed</option>
-                    <option>Pending Review</option>
-                </select>
-            </div>
-            <div class="filter-dropdown">
-                <select>
-                    <option>All Predictions</option>
-                    <option>Normal</option>
-                    <option>Bacterial</option>
-                    <option>Viral</option>
-                </select>
-            </div>
-            <button class="advanced-filters-btn">
-                <i class="fas fa-filter"></i> Advanced Filters
-            </button>
-        </div>
+        </form>
     </div>
 
-    <p class="diagnosis-count">Showing {{ history_records|length }} diagnoses</p>
+    <p class="diagnosis-count">Showing <span id="current-count">{{ history_records|length }}</span> diagnoses</p>
 
     <div class="diagnosis-list">
         {% if history_records %}
             {% for record in history_records %}
-            <div class="diagnosis-card">
+            <div class="diagnosis-card"
+                 data-name="{{ record.patients.name or '' }}"
+                 data-id="{{ record.patient_id }}"
+                 data-status="{{ record.status or 'Pending Review' }}"
+                 data-prediction="{{ record.prediction_result | upper or '' }}">
+
                 <div class="diagnosis-main-row">
                     <div class="patient-summary">
                         <span>{{ record.patients.name or 'N/A' }}</span>
@@ -452,6 +485,11 @@
                 </div>
             </div>
             {% endfor %}
+            
+            <div class="no-diagnoses" id="no-results-message" style="display: none;">
+                <p>No diagnoses match your current search and filter criteria.</p>
+                <button type="button" class="view-details-btn" onclick="document.getElementById('reset-filters').click()">Clear all filters</button>
+            </div>
         {% else %}
             <div class="no-diagnoses">
                 <p>You haven't performed any diagnoses yet.</p>
@@ -460,5 +498,79 @@
         {% endif %}
     </div>
 </main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const predictionFilter = document.getElementById('prediction-filter');
+        const resetButton = document.getElementById('reset-filters');
+        const diagnosisCards = document.querySelectorAll('.diagnosis-card');
+        const currentCountSpan = document.getElementById('current-count');
+        const noResultsMessage = document.getElementById('no-results-message');
+        const diagnosisList = document.querySelector('.diagnosis-list');
+
+        function filterRecords() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedStatus = statusFilter.value.toLowerCase();
+            const selectedPrediction = predictionFilter.value.toUpperCase();
+            let visibleCount = 0;
+
+            diagnosisCards.forEach(card => {
+                const patientName = card.getAttribute('data-name').toLowerCase();
+                const patientId = card.getAttribute('data-id').toLowerCase();
+                const cardStatus = card.getAttribute('data-status').toLowerCase();
+                const cardPrediction = card.getAttribute('data-prediction').toUpperCase();
+
+                // 1. Search filter (Name or ID)
+                const passesSearch = !searchTerm || patientName.includes(searchTerm) || patientId.includes(searchTerm);
+
+                // 2. Status filter
+                const passesStatus = !selectedStatus || cardStatus === selectedStatus;
+
+                // 3. Prediction filter
+                const passesPrediction = !selectedPrediction || cardPrediction === selectedPrediction;
+
+                // Final visibility check
+                if (passesSearch && passesStatus && passesPrediction) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update visible count
+            currentCountSpan.textContent = visibleCount;
+            
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                noResultsMessage.style.display = 'block';
+                // Hide the main diagnosis list border/padding if only the no-results is visible
+                diagnosisList.style.border = 'none'; 
+            } else {
+                noResultsMessage.style.display = 'none';
+                diagnosisList.style.border = '';
+            }
+        }
+
+        // Attach event listeners for filtering
+        searchInput.addEventListener('input', filterRecords);
+        statusFilter.addEventListener('change', filterRecords);
+        predictionFilter.addEventListener('change', filterRecords);
+
+        // Reset button functionality
+        resetButton.addEventListener('click', function() {
+            searchInput.value = '';
+            statusFilter.value = '';
+            predictionFilter.value = '';
+            filterRecords(); // Re-run filter after reset
+        });
+
+        // Initial filter run (in case any field starts populated)
+        filterRecords();
+    });
+</script>
+
 </body>
 </html>

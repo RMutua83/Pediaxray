@@ -70,7 +70,6 @@
 
 <header class="header">
     <div class="logo">PneumoAI</div>
-    <div class="css-badge">CSS</div>
 </header>
 
 <main class="main-container">
@@ -114,7 +113,7 @@
                     <div class="medical-history-label">Medical History</div>
                     <p>{{ patient.medical_history or 'No significant medical history' }}</p>
                 </div>
-                <div class="latest-diagnosis">
+                <!--<div class="latest-diagnosis">
                     <span class="latest-diagnosis-label">Latest Diagnosis</span>
                     {% if patient.latest_diagnosis %}
                         <span class="badge {{ 'pneumonia' if patient.latest_diagnosis.prediction=='Pneumonia' else 'normal' }}">
@@ -123,8 +122,8 @@
                     {% else %}
                         <span class="badge normal">No Diagnosis</span>
                     {% endif %}
-                </div>
-                {% if patient.latest_diagnosis %}
+                </div> -->
+                {% if patient.latest_diagnosis %} 
                     <p class="latest-diagnosis-label"><span>{{ patient.latest_diagnosis.date }}</span></p>
                     <div class="action-row">
                         <span class="count">{{ patient.diagnosis_count }} diagnosis{{ 'es' if patient.diagnosis_count>1 else '' }}</span>

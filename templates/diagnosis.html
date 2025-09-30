@@ -309,7 +309,7 @@ body {
 
 <header class="header">
     <div class="logo">PneumoAI</div>
-    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    <!-- <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a> -->
 </header>
 
 <main class="main-container">
@@ -320,7 +320,9 @@ body {
         <h1>New Diagnosis</h1>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Flash Messages -->
+     {#
+     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
             <div class="flash-message {{ category }}">
@@ -329,7 +331,8 @@ body {
             </div>
             {% endfor %}
         {% endif %}
-    {% endwith %}
+    {% endwith %} 
+     #}
 
     <form id="diagnosis-form" action="{{ url_for('diagnosis') }}" method="POST" enctype="multipart/form-data">
         <div class="content-grid">
@@ -343,9 +346,8 @@ body {
 
                     <div class="form-group full-width">
                         <label for="patient-select">Select Existing Patient</label>
-                        <select id="patient-select" name="patient_id">
-                            <option value="">-- New Patient --</option>
-                            {% for patient in patients %}
+                        <select id="patient-select" name="patient_id" required>
+                           <option value="" disabled selected>-- Select Patient --</option> {% for patient in patients %}
                                 <option value="{{ patient.id }}"
                                     data-name="{{ patient.name }}"
                                     data-age="{{ patient.age }}"

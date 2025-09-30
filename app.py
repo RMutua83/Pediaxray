@@ -5,10 +5,11 @@ import base64
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from skimage.transform import resize
+from keras.models import load_model 
+from keras.preprocessing import image
+from skimage.transform import resize # Included in original, but not strictly used in current logic
 import cv2 # OpenCV for Grad-CAM visualization
+from datetime import datetime
 from PIL import Image
 from io import StringIO, BytesIO
 
@@ -29,7 +30,8 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey_dev_default")
+# Ensure FLASK_SECRET_KEY is set in your .env file
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey_dev_default") 
 
 # --- Global System Settings ---
 GLOBAL_MIN_CONFIDENCE_THRESHOLD = 75.0 # For flagging results for review
@@ -38,55 +40,153 @@ PREDICTION_COLUMN = "prediction_result"
 CONFIDENCE_COLUMN = "prediction_confidence"
 
 # --- Machine Learning Model Setup ---
+# NOTE: Ensure 'custom_cnn_pneumo_ai_best_baseline.keras' is in the root directory
 MODEL_PATH = 'custom_cnn_pneumo_ai_best_baseline.keras'
 IMG_SIZE = (128, 128)
 CLASS_LABELS = ['NORMAL', 'BACTERIAL', 'VIRAL'] 
-# <<< CRITICAL: REPLACE THIS VALUE WITH YOUR MODEL'S ACTUAL LAST CONV LAYER NAME! >>>
-LAST_CONV_LAYER_NAME = 'conv2d_15' # 'conv2d_3'
+
+pneumo_model = None
+LAST_CONV_LAYER_NAME = None # 'conv2d_19' # Update based on your model architecture
+
+# --- Machine Learning Model Setup (Update this block in app.py) ---
+
+pneumo_model = None
+LAST_CONV_LAYER_OBJECT = None
+
+def find_last_conv_layer_object(model):
+    """
+    Dynamically finds the object of the last Conv2D layer by simple iteration 
+    over the model's layers list. This is the most stable method for Keras 3 
+    Sequential models loaded from .keras files.
+    """
+    from keras.layers import Conv2D
+    
+    # Iterate over the direct layers in reverse order
+    # This assumes the Conv2D layers are directly in model.layers or model.layers[0].layers
+    
+    layers_to_check = []
+    
+    # Case 1: Simple Sequential Model
+    if model.layers and not hasattr(model.layers[0], 'layers'):
+        layers_to_check = model.layers
+    # Case 2: Model loaded as a nested Sequential (common with .keras files)
+    elif len(model.layers) == 1 and hasattr(model.layers[0], 'layers'):
+        layers_to_check = model.layers[0].layers
+    else:
+        # Fallback to the direct layers property
+        layers_to_check = model.layers 
+        
+    for layer in reversed(layers_to_check):
+        if isinstance(layer, Conv2D):
+            print(f"DEBUG: Found last Conv2D layer: {layer.name}")
+            return layer
+            
+    return None
 
 try:
     pneumo_model = load_model(MODEL_PATH, compile=False) 
-    print(f"Pneumonia Model loaded successfully from: {MODEL_PATH}")
+    LAST_CONV_LAYER_OBJECT = find_last_conv_layer_object(pneumo_model) # Store the object
     
+    if LAST_CONV_LAYER_OBJECT is None:
+        raise Exception("Could not find a Conv2D layer in the loaded model for Grad-CAM.")
+        
+    print(f"Pneumonia Model loaded successfully from: {MODEL_PATH}")
+    print(f"LAST_CONV_LAYER_NAME dynamically set to: {LAST_CONV_LAYER_OBJECT.name}")
+
 except Exception as e:
-    pneumo_model = None
     print(f"ERROR: Could not load the model from {MODEL_PATH}. Prediction disabled: {e}")
 
 # --- Utility Function for Grad-CAM ---
 
-def get_grad_cam_heatmap(img_array, model, last_conv_layer_name, predicted_index):
-    """Generates the Grad-CAM heatmap for a specific predicted class index."""
-    if model is None:
-        return None
+# --- Utility Function for Grad-CAM (REPLACE THIS ENTIRE FUNCTION) ---
 
-    # 1. Create a model that maps the input image to the activations of the last conv layer
-    grad_model = tf.keras.models.Model(
-        [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
-    )
+def get_grad_cam_heatmap(img_array, model, last_conv_layer_object, predicted_index):
+    """
+    Generates the Grad-CAM heatmap using tf.GradientTape for robustness.
+    Uses model.get_layer() to correctly identify tensors, bypassing the 
+    'sequential_3 has never been called' error.
+    """
+    if model is None or last_conv_layer_object is None:
+        return np.zeros((128, 128))
+
+    # CRITICAL FIX: Get the name of the last conv layer
+    last_conv_layer_name = last_conv_layer_object.name 
     
-    # 2. Compute the gradient of the top predicted class
-    with tf.GradientTape() as tape:
-        last_conv_layer_output, preds = grad_model(img_array)
-        
-        pred_index = predicted_index 
-        class_channel = preds[:, pred_index]
+    # 1. Create a model that maps the input image to the activations of the last conv layer
+    # We use model.get_layer(name) to ensure Keras finds the layer's output tensor correctly.
+    try:
+        grad_model = tf.keras.models.Model(
+            model.inputs, 
+            model.get_layer(last_conv_layer_name).output
+        )
+    except Exception as e:
+        print(f"GRAD-CAM TENSOR ERROR (Feature Model): Could not create intermediate model from layer '{last_conv_layer_name}'. Error: {e}")
+        return np.zeros((128, 128))
 
-    # 3. Gradient of the output neuron
+    # 2. Identify the input to the final classifier part (everything after the last conv layer)
+    # This involves building a model from the output of the last conv layer to the final prediction
+    classifier_input = model.get_layer(last_conv_layer_name).output
+    
+    # Identify the index where the classifier layers start
+    layer_names = [layer.name for layer in model.layers]
+    if last_conv_layer_name not in layer_names:
+        # Check nested layers if not found directly
+        try:
+            layer_names = [layer.name for layer in model.layers[0].layers]
+        except:
+             print("GRAD-CAM TENSOR ERROR: Layer index lookup failed.")
+             return np.zeros((128, 128))
+
+    try:
+        start_index = layer_names.index(last_conv_layer_name) + 1
+        
+        # Build the classifier model path by cloning the downstream layers
+        classifier_layers = model.layers[start_index:]
+        
+        # Create a Sequential model for the classifier part
+        classifier_model = tf.keras.Sequential(classifier_layers)
+        
+    except ValueError:
+        print(f"GRAD-CAM TENSOR ERROR: Layer '{last_conv_layer_name}' index lookup failed.")
+        return np.zeros((128, 128))
+
+
+    # 3. Use GradientTape to compute gradients of the class score
+    with tf.GradientTape() as tape:
+        # Watch the input image
+        tape.watch(img_array) 
+        
+        # Get the feature map from the intermediate model
+        last_conv_layer_output = grad_model(img_array) 
+        
+        # Pass the feature map through the classifier
+        classifier_output = classifier_model(last_conv_layer_output)
+        
+        # Get the score for the predicted class
+        class_channel = classifier_output[:, predicted_index]
+
+
+    # 4. Compute gradients of the class score w.r.t. the feature map
     grads = tape.gradient(class_channel, last_conv_layer_output)
 
-    # 4. Vector of mean intensity (weights)
+    # 5. Global Average Pooling of gradients (weights)
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
-    # 5. Multiply each channel's activation by its weight
-    last_conv_layer_output = last_conv_layer_output[0]
-    heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
-    heatmap = tf.squeeze(heatmap)
+    # 6. Generate the heatmap
+    last_conv_layer_output = last_conv_layer_output[0] 
+    heatmap = last_conv_layer_output * pooled_grads[tf.newaxis, tf.newaxis, :]
+    heatmap = tf.reduce_sum(heatmap, axis=-1)
 
-    # 6. Normalize the heatmap
-    heatmap = tf.maximum(heatmap, 0) / tf.reduce_max(heatmap)
+    # 7. Normalize and apply ReLU
+    heatmap = np.maximum(heatmap, 0)
+    max_val = np.max(heatmap)
+    if max_val == 0:
+        return np.zeros((128, 128))
+        
+    heatmap = heatmap / max_val
     
-    return heatmap.numpy()
-
+    return np.array(heatmap)
+# ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
 
 
@@ -100,7 +200,8 @@ def index():
         if session["user"]["role"] == "system_admin":
             return redirect(url_for("admin_dashboard"))
         elif session["user"]["role"] == "doctor":
-            return redirect(url_for("doc_dashboard"))
+            # Using the renamed endpoint for consistency
+            return redirect(url_for("doctor_dashboard")) 
     return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -115,7 +216,6 @@ def login():
             
             # WARNING: Insecure password check - replace with hashed password check in production!
             if user_data and user_data['password'] == password: 
-                # Store full user data including ID for foreign key inserts
                 session["user"] = {
                     "id": user_data['id'],
                     "name": user_data.get('name', user_data['email']),
@@ -126,7 +226,8 @@ def login():
                 if user_data['role'] == "system_admin":
                     return redirect(url_for("admin_dashboard"))
                 else:
-                    return redirect(url_for("doc_dashboard"))
+                    # Using the renamed endpoint for consistency
+                    return redirect(url_for("doctor_dashboard")) 
             else:
                 flash("Invalid email or password.", "danger")
         except Exception as e:
@@ -159,7 +260,7 @@ def admin_dashboard():
         user_name_lookup = {u['id']: u['name'] for u in users}
 
         # 2. Fetch ALL Diagnoses for Stat Calculation
-        all_diagnoses_res = supabase.table("diagnoses").select(f"{PREDICTION_COLUMN}, patient_id").execute()
+        all_diagnoses_res = supabase.table("diagnoses").select(f"id, {PREDICTION_COLUMN}, patient_id").execute()
         all_diagnoses = all_diagnoses_res.data if all_diagnoses_res.data else []
 
         # 3. Calculate Summary Stats (KPIs)
@@ -172,9 +273,11 @@ def admin_dashboard():
             if (d.get(PREDICTION_COLUMN) or '').upper() in ('BACTERIAL', 'VIRAL')
         )
         
+        # Assuming pending means no doctor_notes/official_diagnosis, or a specific status column
+        # I'll modify to count cases with confidence below threshold for ADMIN view
         pending_count = sum(
             1 for d in all_diagnoses 
-            if (d.get(PREDICTION_COLUMN) or '').upper() == 'PENDING'
+            if (d.get(CONFIDENCE_COLUMN, 0) < GLOBAL_MIN_CONFIDENCE_THRESHOLD)
         )
         
         # 4. Fetch Recent Activity 
@@ -190,14 +293,15 @@ def admin_dashboard():
         patient_ids = [d['patient_id'] for d in all_diagnoses if d.get('patient_id')]
         unique_patient_ids = list(set(patient_ids))
         
+        # NOTE: Using a single 'in_' query for efficiency is better than many individual queries
         patient_res = supabase.table("patients").select("id, name").in_("id", unique_patient_ids).execute()
         patient_name_lookup = {p['id']: p['name'] for p in patient_res.data}
         
         # 6. Process data for the template
         for item in recent_activity:
             if item.get("created_at"):
-                 parts = item["created_at"].split("T")
-                 item["display_time"] = f"{parts[0]} {parts[1].split('.')[0]}" 
+                parts = item["created_at"].split("T")
+                item["display_time"] = f"{parts[0]} {parts[1].split('.')[0]}" 
             else:
                 item["display_time"] = "N/A"
             
@@ -213,28 +317,28 @@ def admin_dashboard():
 
         # 7. Render the template
         return render_template("admin_dashboard.html", 
-                               user=current_user,
-                               users=users,
-                               recent_activity=recent_activity,
-                               total_users=total_users,
-                               total_diagnoses=total_diagnoses,
-                               pneumonia_count=pneumonia_count,
-                               pending_count=pending_count,
-                               global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
-                               app_status=GLOBAL_APP_STATUS)
+                                user=current_user,
+                                users=users,
+                                recent_activity=recent_activity,
+                                total_users=total_users,
+                                total_diagnoses=total_diagnoses,
+                                pneumonia_count=pneumonia_count,
+                                pending_count=pending_count,
+                                global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
+                                app_status=GLOBAL_APP_STATUS)
 
     except Exception as e:
         print(f"ADMIN DASHBOARD CRITICAL FAILURE: {e}") 
         flash(f"A critical error occurred while fetching data: {str(e)}", "danger")
         
         return render_template("admin_dashboard.html", 
-                               user=current_user, 
-                               users=[], 
-                               recent_activity=[],
-                               total_users=0, total_diagnoses=0, pneumonia_count=0, pending_count=0,
-                               global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
-                               app_status=GLOBAL_APP_STATUS
-                               )
+                                user=current_user, 
+                                users=[], 
+                                recent_activity=[],
+                                total_users=0, total_diagnoses=0, pneumonia_count=0, pending_count=0,
+                                global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
+                                app_status=GLOBAL_APP_STATUS
+                                )
 
 
 @app.route("/admin/toggle_system_status", methods=["POST"])
@@ -274,7 +378,7 @@ def save_core_settings():
             else:
                 flash("Confidence threshold must be between 50 and 100.", "warning")
         else:
-             flash("Confidence value missing.", "warning")
+            flash("Confidence value missing.", "warning")
 
     except ValueError:
         flash("Invalid value provided for confidence threshold.", "danger")
@@ -327,8 +431,9 @@ def delete_user(user_id):
 # DOCTOR ROUTES
 # ----------------------------
 
+# Renamed to doctor_dashboard for consistency
 @app.route("/doctor")
-def doctor_dashboard():
+def doctor_dashboard(): 
     if "user" not in session or session["user"]["role"] != "doctor":
         return redirect(url_for("login"))
     
@@ -355,12 +460,12 @@ def doctor_dashboard():
         print(f"DOCTOR DASHBOARD ERROR: {e}")
         flash("Error fetching data.", "danger")
         
-    return render_template("doc_dashboard.html", # Renamed to doctor_dashboard.html for consistency
-                           user=current_user, 
-                           patients=patients, 
-                           recent_diagnoses=recent_diagnoses,
-                           global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
-                           app_status=GLOBAL_APP_STATUS)
+    return render_template("doc_dashboard.html", 
+                            user=current_user, 
+                            patients=patients, 
+                            recent_diagnoses=recent_diagnoses,
+                            global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
+                            app_status=GLOBAL_APP_STATUS)
 
 
 @app.route("/patients")
@@ -376,7 +481,7 @@ def patients():
         return render_template("patients.html", patients=patients)
     except Exception as e:
         flash(f"Database error fetching patients: {str(e)}", "danger")
-        return redirect(url_for("doc_dashboard"))
+        return redirect(url_for("doctor_dashboard")) # Fixed endpoint
 
 
 @app.route("/patients/add", methods=["GET", "POST"])
@@ -425,14 +530,14 @@ def diagnosis():
     
     # 1. Fetch patient list for the form (GET and POST context)
     try:
-        patients_res = supabase.table("patients").select("*").eq("doctor_id", doctor_id).execute()
+        patients_res = supabase.table("patients").select("*").eq("doctor_id", doctor_id).order("name", desc=False).execute()
         patients = patients_res.data if patients_res.data else []
     except Exception as e:
         flash(f"Database error fetching patient list: {str(e)}", "danger")
         patients = []
 
     if request.method == "POST":
-        # Check system status
+        # Check system status and model load status
         if pneumo_model is None:
             flash("AI Model is not loaded. Cannot run diagnosis.", "danger")
             return redirect(url_for("diagnosis"))
@@ -458,6 +563,7 @@ def diagnosis():
         # --- File Upload & Storage ---
         try:
             # Read file bytes once for use in both storage and AI prediction
+            xray_file.seek(0) # Ensure file pointer is at the start
             file_bytes = xray_file.read()
             if not file_bytes:
                 flash("Error reading X-ray file.", "danger")
@@ -467,7 +573,6 @@ def diagnosis():
             filename = f"xray_{patient_id}_{uuid.uuid4()}.{ext}"
             
             # 1. Upload the file to Supabase Storage
-            # Use the 'file_bytes' content read above
             supabase.storage.from_("xray-images").upload(filename, file_bytes)
             
             # 2. Get the public URL
@@ -484,7 +589,6 @@ def diagnosis():
         try:
             # 3. Preprocess the image
             img = Image.open(BytesIO(file_bytes)).convert('RGB')
-            # Use the correct size (128, 128) as per your training code
             img = img.resize(IMG_SIZE) 
             img_array = image.img_to_array(img)
             img_array = np.expand_dims(img_array, axis=0)
@@ -506,19 +610,48 @@ def diagnosis():
             confidence_breakdown[label] = round(float(predictions[i] * 100), 2)
         
 
-        # 5. Generate Grad-CAM for the Predicted Class (USING CORRECTED LAYER NAME)
+        # 5. Generate Grad-CAM for the Predicted Class 
         gradcam_base64 = ""
         try:
-            # 🚨 LAST_CONV_LAYER_NAME MUST BE SET TO 'conv2d_15'
-            heatmap = get_grad_cam_heatmap(img_array, pneumo_model, LAST_CONV_LAYER_NAME, predicted_index)
+            # Prepare img_tensor from img_array for Grad-CAM
+            img_tensor = tf.convert_to_tensor(img_array, dtype=tf.float32)
             
-            # Prepare image for overlay
-            img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            # Use the tensor for Grad-CAM
+            heatmap = get_grad_cam_heatmap(
+                img_tensor, 
+                pneumo_model, 
+                LAST_CONV_LAYER_OBJECT, 
+                predicted_index
+            )
             
-            # Resize heatmap to match image size and overlay
-            heatmap_resized = cv2.resize(heatmap, (img_cv.shape[1], img_cv.shape[0]))
-            heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
+            # --- COLOR FIX ---
+            # 1. Convert PIL image (which was resized to 128x128) to OpenCV format
+            img_cv = np.array(img.convert('RGB')) 
+            img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR) # Convert to BGR format
+            
+            # 2. Resize heatmap to match the **128x128** input size (if not already)
+            # This is important if your model output is smaller than the input size (e.g., 8x8)
+            heatmap_resized = cv2.resize(heatmap, IMG_SIZE) # Use IMG_SIZE (128, 128)
+            
+            # 3. Scale heatmap values from 0-1 to 0-255 (np.uint8 expects this)
+            heatmap_scaled = np.uint8(255 * heatmap_resized) 
+            
+            # 4. Apply the JET colormap (Red/Yellow for hot spots)
+            heatmap_colored = cv2.applyColorMap(heatmap_scaled, cv2.COLORMAP_JET)
+            
+            # 5. Overlay the original 128x128 image with the color map
+            # Adjust alpha values (0.6 for image, 0.4 for heatmap)
             superimposed_img = cv2.addWeighted(img_cv, 0.6, heatmap_colored, 0.4, 0)
+
+            # --- SIZE FIX ---
+            # Scale the final image up for better display (e.g., 256x256)
+            DISPLAY_SIZE = (256, 256) 
+            superimposed_img_resized = cv2.resize(
+                superimposed_img, 
+                DISPLAY_SIZE, 
+                interpolation=cv2.INTER_LINEAR
+            )
+
             
             # Encode the overlaid image to Base64
             _, buffer = cv2.imencode('.png', superimposed_img)
@@ -526,7 +659,7 @@ def diagnosis():
             
         except Exception as e:
             print(f"GRAD-CAM ERROR: {e}")
-            flash("Failed to generate Grad-CAM visualization.", "warning")
+            flash(f"Failed to generate Grad-CAM visualization: {e}", "warning")
 
 
         # 6. Store Result in Supabase Database
@@ -542,7 +675,7 @@ def diagnosis():
                 "gradcam_base64": gradcam_base64
             }
             
-            # CORRECTED: Insert data and retrieve the inserted row
+            # Insert data and retrieve the inserted row
             insert_res = supabase.table("diagnoses").insert(data_to_insert).execute()
             
             if insert_res.data and len(insert_res.data) > 0:
@@ -559,13 +692,13 @@ def diagnosis():
 
     return render_template("diagnosis.html", patients=patients)
 
-@app.route("/prediction/<diagnosis_id>")
+@app.route("/prediction/<string:diagnosis_id>")
 def prediction(diagnosis_id):
-    if "user" not in session or session["user"]["role"] != "doctor":
+    if "user" not in session or session["user"]["role"] not in ["doctor", "system_admin"]:
         return redirect(url_for("login"))
 
     try:
-        # Fetch all required columns including prediction_breakdown
+        # Fetch all required columns including prediction_breakdown and JOIN with patients
         diag_res = supabase.table("diagnoses") \
             .select(f"*, patients(*), {PREDICTION_COLUMN}, {CONFIDENCE_COLUMN}, prediction_breakdown, gradcam_base64") \
             .eq("id", str(diagnosis_id)) \
@@ -575,22 +708,87 @@ def prediction(diagnosis_id):
         diagnosis = diag_res.data
         if not diagnosis:
             flash("Diagnosis record not found.", "danger")
-            return redirect(url_for("doc_dashboard"))
+            return redirect(url_for("doctor_dashboard"))
         
         # Prepare data for template
         needs_review = diagnosis.get(CONFIDENCE_COLUMN, 0) < GLOBAL_MIN_CONFIDENCE_THRESHOLD
 
         return render_template("prediction.html", 
-                               diagnosis=diagnosis,
-                               needs_review=needs_review,
-                               class_labels=CLASS_LABELS,
-                               global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
-                               user=session["user"])
+                                diagnosis=diagnosis,
+                                needs_review=needs_review,
+                                class_labels=CLASS_LABELS,
+                                global_min_confidence_threshold=GLOBAL_MIN_CONFIDENCE_THRESHOLD,
+                                user=session["user"])
 
     except Exception as e:
         flash(f"Error retrieving prediction: {str(e)}", "danger")
         print(f"PREDICTION VIEW ERROR: {e}")
         return redirect(url_for("doctor_dashboard"))
+
+
+# =========================================================================
+# DOCTOR ROUTE: /finalize (CRITICALLY MISSING ROUTE)
+# =========================================================================
+
+@app.route("/finalize/<string:diagnosis_id>", methods=["POST"])
+def finalize_diagnosis(diagnosis_id):
+    """
+    Handles the doctor's final diagnosis submission, resolving the URL build error.
+    Endpoint: 'finalize_diagnosis'
+    """
+    if "user" not in session or session["user"]["role"] != "doctor":
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("login"))
+    
+    # 1. Check if the diagnosis exists and is not already finalized
+    try:
+        diag_res = supabase.table("diagnoses").select("id, doctor_notes").eq("id", str(diagnosis_id)).single().execute()
+        diagnosis = diag_res.data
+        
+        if not diagnosis:
+            flash("Diagnosis record not found for finalization.", "danger")
+            return redirect(url_for("doctor_dashboard"))
+            
+        if diagnosis.get('doctor_notes'):
+            flash("Case already finalized. Cannot modify.", "warning")
+            return redirect(url_for("prediction", diagnosis_id=diagnosis_id))
+            
+    except Exception as e:
+        flash("Error checking diagnosis status.", "danger")
+        print(f"FINALIZE CHECK ERROR: {e}")
+        return redirect(url_for("prediction", diagnosis_id=diagnosis_id))
+
+    # 2. Get form data
+    official_diagnosis = request.form.get('official_diagnosis')
+    doctor_notes = request.form.get('doctor_notes')
+    doctor_id = session["user"]["id"]
+
+    if not official_diagnosis or not doctor_notes:
+        flash("Official Diagnosis and Notes are required.", "danger")
+        return redirect(url_for("prediction", diagnosis_id=diagnosis_id))
+
+    # 3. Update the Supabase record
+    try:
+        supabase.table("diagnoses") \
+            .update({
+                "official_diagnosis": official_diagnosis,
+                "doctor_notes": doctor_notes,
+                "finalized_at": datetime.utcnow().isoformat(),
+                "doctor_id": doctor_id # Ensure doctor ID is set/updated
+            }) \
+            .eq("id", str(diagnosis_id)) \
+            .execute()
+            
+        flash("Case successfully finalized!", "success")
+        
+    except Exception as e:
+        flash(f"Database update failed during finalization: {e}", "danger")
+        print(f"FINALIZE UPDATE ERROR: {e}")
+
+    # 4. Redirect back to the prediction page to show the finalized state
+    return redirect(url_for('prediction', diagnosis_id=diagnosis_id))
+
+# =========================================================================
 
 
 @app.route("/history")
@@ -600,7 +798,7 @@ def history():
 
     doctor_id = session["user"]["id"]
     try:
-        # 1. Fetch diagnoses linked to the doctor, joining to get ALL patient details.
+        # Fetch diagnoses linked to the doctor, joining to get ALL patient details.
         history_res = supabase.table("diagnoses") \
             .select("*, patients(*)") \
             .eq("doctor_id", doctor_id) \
@@ -624,7 +822,7 @@ def history():
     except Exception as e:
         flash(f"Database error fetching history: {str(e)}", "danger")
         print(f"HISTORY FETCH ERROR: {e}")
-        return redirect(url_for("doc_dashboard"))
+        return redirect(url_for("doctor_dashboard")) # Fixed endpoint
 
 # ----------------------------------------------------
 # EXPORT ROUTES (History and Single Prediction Report)
@@ -654,7 +852,7 @@ def export_history():
         header = [
             'Diagnosis ID', 'Date', 'Time', 'Patient Name', 'Patient Age', 'Symptoms', 
             'AI Prediction', 'Confidence (%)', 'Conf_NORMAL', 'Conf_BACTERIAL', 'Conf_VIRAL', 
-            'X-ray URL'
+            'X-ray URL', 'Official Diagnosis', 'Doctor Notes' # Added finalized fields
         ]
         cw.writerow(header)
 
@@ -679,7 +877,9 @@ def export_history():
                 breakdown.get('NORMAL', 'N/A'),
                 breakdown.get('BACTERIAL', 'N/A'),
                 breakdown.get('VIRAL', 'N/A'),
-                record.get('xray_url', '')
+                record.get('xray_url', ''),
+                record.get('official_diagnosis', ''), # New field
+                record.get('doctor_notes', '') # New field
             ]
             cw.writerow(row)
 
@@ -715,7 +915,7 @@ def export_prediction_report(diagnosis_id):
         record = report_res.data
         if not record:
             flash("Diagnosis record not found for report generation.", "danger")
-            return redirect(url_for("doctor_dashboard"))
+            return redirect(url_for("doctor_dashboard")) # Fixed endpoint
 
         patient = record.get('patients', {})
         breakdown = record.get('prediction_breakdown', {})
@@ -728,7 +928,8 @@ def export_prediction_report(diagnosis_id):
         header = [
             'Diagnosis ID', 'Date', 'Patient Name', 'Age', 'Gender', 
             'Symptoms', 'Medical History', 'AI Prediction', 'Confidence (%)', 
-            'Conf_NORMAL', 'Conf_BACTERIAL', 'Conf_VIRAL', 'X-ray URL'
+            'Conf_NORMAL', 'Conf_BACTERIAL', 'Conf_VIRAL', 
+            'Official Diagnosis', 'Doctor Notes', 'Finalized Date', 'X-ray URL' # Added finalized fields
         ]
         cw.writerow(header)
 
@@ -749,6 +950,9 @@ def export_prediction_report(diagnosis_id):
             breakdown.get('NORMAL', 'N/A'),
             breakdown.get('BACTERIAL', 'N/A'),
             breakdown.get('VIRAL', 'N/A'),
+            record.get('official_diagnosis', ''),
+            record.get('doctor_notes', ''),
+            record.get('finalized_at', 'N/A').split('T')[0] if record.get('finalized_at') else 'N/A',
             record.get('xray_url', '')
         ]
         cw.writerow(row)
@@ -772,5 +976,4 @@ def export_prediction_report(diagnosis_id):
 
 
 if __name__ == "__main__":
-    # Note: On production systems, set debug=False
     app.run(debug=True)

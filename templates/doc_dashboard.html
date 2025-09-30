@@ -3,21 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PneumoAI Dashboard</title>
+    <title>PneumoAI Doctor Dashboard</title>
+    <meta name="description" content="PneumoAI Doctor Dashboard for pediatric pneumonia detection and case management.">
+    
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"></noscript>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
         :root {
-            --background-light: #f0f4f8;
-            --background-white: #ffffff;
+            /* General */
+            --bg-light: #f4f7f9; 
+            --bg-white: #ffffff;
             --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --primary-blue: #2563eb;
-            --accent-purple: #8b5cf6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
+            --text-gray: #6b7280; 
             --border-light: #e5e7eb;
-            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            --card-border-radius: 0.75rem;
+            --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+            --radius-xl: 0.75rem;
+
+            /* Primary Colors */
+            --color-primary: #0ea5e9; /* Sky 500 */
+            --color-primary-dark: #0369a1; /* Sky 700 */
+
+            /* Accent Colors (for cards) */
+            --color-green: #10b981; /* Green 500 */
+            --color-purple: #8b5cf6; /* Violet 500 */
+
+            /* Result Colors (for badges) */
+            --result-normal-bg: #d1fae5;
+            --result-normal-text: #059669;
+            --result-bacterial-bg: #fef3c7; 
+            --result-bacterial-text: #d97706; 
+            --result-viral-bg: #fee2e2; 
+            --result-viral-text: #dc2626; 
+            --result-pending-bg: #e5e7eb;
+            --result-pending-text: #6b7280;
+
             /* Alert Colors */
             --alert-success-bg: #d1e7dd;
             --alert-success-text: #0f5132;
@@ -27,221 +50,74 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background-light);
+            background-color: var(--bg-light);
             color: var(--text-dark);
             margin: 0;
             line-height: 1.5;
         }
 
+        /* --- Layout & Header --- */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 3rem;
-            background-color: var(--background-white);
+            padding: 1rem 3rem;
+            background-color: var(--bg-white);
             border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .header .logo {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--color-primary-dark);
+            /* Removed flex and icon styling as the icon is gone */
         }
 
         .header .logout-btn {
-            background-color: var(--primary-blue);
+            background-color: var(--color-primary);
             color: #fff;
             padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s;
-        }
-        .header .logout-btn:hover {
-             background-color: #1e40af;
-        }
-
-        .header .logout-btn i {
-            margin-right: 0.5rem;
-        }
-
-        .main-container {
-            padding: 2rem 3rem;
-        }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .hero-section h1 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        .hero-section p {
-            margin-top: 0.5rem;
-            color: var(--text-gray);
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .card {
-            background-color: var(--background-white);
-            border: 1px solid var(--border-light);
-            border-radius: var(--card-border-radius);
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .card .icon-circle {
-            width: 4rem;
-            height: 4rem;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }
-
-        .card-1 .icon-circle {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: var(--primary-blue);
-        }
-
-        .card-2 .icon-circle {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--accent-green);
-        }
-
-        .card-3 .icon-circle {
-            background-color: rgba(139, 92, 246, 0.1);
-            color: var(--accent-purple);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-dark);
-        }
-
-        .card-description {
-            color: var(--text-gray);
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .card button {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
             border-radius: 0.5rem;
             font-weight: 600;
-            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
             transition: background-color 0.2s;
         }
+        .header .logout-btn:hover { background-color: var(--color-primary-dark); }
+        .header .logout-btn i { margin-right: 0.5rem; }
 
-        .card a {
-            width: 100%;
-            text-decoration: none;
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
 
-        .card-1 button {
-            background-color: var(--primary-blue);
-            color: #ffffff;
-        }
-
-        .card-1 button:hover {
-            background-color: #1e40af;
-        }
-
-        .card-2 button,
-        .card-3 button {
-            background-color: var(--background-white);
-            color: var(--text-dark);
-            border: 1px solid var(--border-light);
-        }
-
-        .card-2 button:hover,
-        .card-3 button:hover {
-            background-color: var(--border-light);
-        }
-
-        .recent-activity {
-            background-color: var(--background-white);
-            border: 1px solid var(--border-light);
-            border-radius: var(--card-border-radius);
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-        }
-
-        .recent-activity h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-dark);
-        }
-
-        .recent-activity .subtitle {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-bottom: 1.5rem;
-        }
-
-        .activity-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
+        /* --- Hero Section --- */
+        .hero-section {
+            text-align: left;
+            margin-bottom: 2rem;
             border-bottom: 1px solid var(--border-light);
+            padding-bottom: 1.5rem;
         }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            flex-grow: 1; /* Allows details to take up space */
-        }
-
-        .activity-details p {
+        .hero-section h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-dark);
             margin: 0;
-            font-weight: 500;
         }
-
-        .activity-details .subtext {
-            font-size: 0.85rem;
+        .hero-section h1 strong {
+            font-weight: 600;
+            color: var(--color-primary-dark);
+        }
+        .hero-section p {
+            margin-top: 0.25rem;
             color: var(--text-gray);
+            font-size: 0.95rem;
         }
 
-        .activity-time {
-            font-size: 0.85rem;
-            color: var(--text-gray);
-            white-space: nowrap;
-            margin-right: 1rem; /* Spacing before the button */
-        }
-
-        /* NEW: System Status Alert */
+        /* --- System Status Alert (For Maintenance ONLY) --- */
         .system-alert {
             padding: 1rem;
             border-radius: 0.5rem;
@@ -253,17 +129,212 @@
             justify-content: center;
             gap: 0.75rem;
         }
-
-        .alert-success {
-            background-color: var(--alert-success-bg);
-            color: var(--alert-success-text);
-            border: 1px solid #badbcc;
-        }
-
+        /* Removing .alert-success style block as it's no longer used, keeping .alert-danger */
         .alert-danger {
             background-color: var(--alert-danger-bg);
             color: var(--alert-danger-text);
             border: 1px solid #f5c2c7;
+        }
+        
+        /* --- Card Grid --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card .icon-circle {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Card-specific styles */
+        .card-1 { border-top: 4px solid var(--color-primary); }
+        .card-1 .icon-circle { background-color: rgba(14, 165, 233, 0.1); color: var(--color-primary); }
+
+        .card-2 { border-top: 4px solid var(--color-green); }
+        .card-2 .icon-circle { background-color: rgba(16, 185, 129, 0.1); color: var(--color-green); }
+
+        .card-3 { border-top: 4px solid var(--color-purple); }
+        .card-3 .icon-circle { background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple); }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .card a { width: 100%; text-decoration: none; }
+        .card button {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .card-1 button { background-color: var(--color-primary); color: #ffffff; }
+        .card-1 button:hover { background-color: var(--color-primary-dark); }
+        
+        /* Secondary buttons (History, Patients) */
+        .card:not(.card-1) button {
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+        .card:not(.card-1) button:hover {
+            background-color: var(--border-light);
+        }
+
+        /* --- Recent Activity --- */
+        .recent-activity {
+            background-color: var(--bg-white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .recent-activity h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .recent-activity .subtitle {
+            margin-bottom: 1.5rem;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px dashed var(--border-light);
+        }
+        .activity-item:last-child { border-bottom: none; }
+
+        .activity-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            flex-grow: 1; 
+        }
+
+        .activity-details .patient-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+        }
+        .activity-details .patient-name i {
+            margin-right: 0.5rem;
+            color: var(--color-primary);
+        }
+        .activity-details .subtext {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-weight: 400;
+            margin-left: 1.5rem; 
+        }
+        
+        .activity-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            white-space: nowrap;
+        }
+
+        .btn-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem; 
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        .btn-link:hover {
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+
+        /* --- Result Badges --- */
+        .result-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0.6rem;
+            border-radius: 9999px; 
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-normal { background-color: var(--result-normal-bg); color: var(--result-normal-text); }
+        .badge-bacterial { background-color: var(--result-bacterial-bg); color: var(--result-bacterial-text); }
+        .badge-viral { background-color: var(--result-viral-bg); color: var(--result-viral-text); }
+        .badge-pending { background-color: var(--result-pending-bg); color: var(--result-pending-text); }
+
+        /* --- Responsiveness --- */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem 1rem;
+            }
+            .main-container {
+                padding: 1rem;
+            }
+            .hero-section h1 {
+                font-size: 1.5rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr; 
+            }
+            .activity-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .activity-meta {
+                margin-top: 0.5rem;
+                justify-content: space-between;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -273,27 +344,23 @@
         <div class="logo">
             PneumoAI
         </div>
-        <a href="{{ url_for('logout') }}" class="logout-btn">
+        <a href="{{ url_for('logout') }}" class="logout-btn" aria-label="Logout of the system">
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
     </header>
 
     <main class="main-container">
         <section class="hero-section">
-            <h1>Welcome, Dr. {{ user.name | default("User") }}</h1>
+            <h1>Welcome, <strong>Dr. {{ user.name | default("User") }}</strong></h1>
             <p>Advanced AI-powered pediatric pneumonia detection from chest X-rays</p>
         </section>
 
-        {% if app_status == 'MAINTENANCE' %}
-        <div class="system-alert alert-danger">
-            <i class="fas fa-tools"></i> **SYSTEM ALERT:** AI services are currently under **MAINTENANCE**. Predictions may be unavailable.
-        </div>
-        {% else %}
-        <div class="system-alert alert-success">
-            <i class="fas fa-check-circle"></i> AI System is **ONLINE** and running smoothly.
-        </div>
-        {% endif %}
-
+        {% if app_status and app_status == 'MAINTENANCE' %}
+           <div class="system-alert alert-danger" role="alert">
+                <i class="fas fa-tools"></i> <strong>SYSTEM ALERT:</strong> AI services are currently under <strong>MAINTENANCE</strong>. Predictions may be unavailable.
+            </div>
+        {% endif %} 
+        
         <section class="dashboard-grid">
             <div class="card card-1">
                 <div class="icon-circle">
@@ -301,7 +368,7 @@
                 </div>
                 <h2 class="card-title">New Diagnosis</h2>
                 <p class="card-description">Upload chest X-ray for AI analysis</p>
-                <a href="{{ url_for('diagnosis') }}"><button>Start Analysis</button></a>
+                <a href="{{ url_for('diagnosis') }}"><button aria-label="Start New Analysis">Start Analysis</button></a>
             </div>
 
             <div class="card card-2">
@@ -310,7 +377,7 @@
                 </div>
                 <h2 class="card-title">Case History</h2>
                 <p class="card-description">Review previous diagnoses and results</p>
-                <a href="{{ url_for('history') }}"><button>View History</button></a>
+                <a href="{{ url_for('history') }}"><button aria-label="View Case History">View History</button></a>
             </div>
 
             <div class="card card-3">
@@ -319,7 +386,7 @@
                 </div>
                 <h2 class="card-title">Patient Management</h2>
                 <p class="card-description">Manage patient records and information</p>
-                <a href="{{ url_for('patients') }}"><button>Manage Patients</button></a>
+                <a href="{{ url_for('patients') }}"><button aria-label="Manage Patient Records">Manage Patients</button></a>
             </div>
         </section>
 
@@ -327,27 +394,48 @@
             <h2>Recent Activity</h2>
             <p class="subtitle">Latest diagnoses submitted by you</p>
             <div class="activity-list">
-                {% for item in recent_diagnoses %} <div class="activity-item">
+                {% for item in recent_diagnoses %} 
+
+                {% set prediction_upper = item.prediction_result|default('PENDING')|upper %}
+                {% set badge_class = 'badge-pending' %}
+                
+                {% if 'NORMAL' in prediction_upper or 'NO PNEUMONIA' in prediction_upper %}
+                    {% set badge_class = 'badge-normal' %}
+                {% elif 'VIRAL' in prediction_upper %}
+                    {% set badge_class = 'badge-viral' %}
+                {% elif 'BACTERIAL' in prediction_upper %}
+                    {% set badge_class = 'badge-bacterial' %}
+                {% endif %}
+
+                <div class="activity-item" role="listitem">
                     <div class="activity-details">
-                        <p>
+                        <p class="patient-name">
+                            <i class="fas fa-user-injured" aria-hidden="true"></i> 
                             {{ item.patients.name or 'Unknown Patient' }} 
-                            <span style="color: var(--text-gray); font-size: 0.8em;">(ID: {{ item.id[:8] }})</span>
+                            <span style="color: var(--text-gray); font-size: 0.8em; font-weight: 400;">(ID: {{ item.id[:8] }})</span>
                         </p>
-                        <p class="subtext">
-                            **Result:** {{ item.prediction_result | default('Pending') }} 
+                        <div class="subtext">
+                            <span class="result-badge {{ badge_class }}" aria-label="AI Result: {{ item.prediction_result | default('Pending') }}">
+                                {{ item.prediction_result | default('Pending') }}
+                            </span>
                             {% if item.prediction_confidence %}
-                                - **Confidence:** {{ item.prediction_confidence }}%
+                                <span style="font-weight: 600; margin-left: 0.5rem; color: var(--text-dark);" aria-label="Confidence: {{ item.prediction_confidence | round(1) }} percent">
+                                    {{ item.prediction_confidence | round(1) }}%
+                                </span>
                             {% endif %}
-                        </p>
+                        </div>
                     </div>
-                    <span class="activity-time">{{ item.display_time or item.created_at.split('T')[1][:5] }}</span>
-                    <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="btn-link" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">View</a>
+                    
+                    <div class="activity-meta">
+                        <span class="activity-time">{{ item.display_time or item.created_at.split('T')[1][:5] }}</span>
+                        <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="btn-link" aria-label="View diagnosis for {{ item.patients.name or 'Unknown Patient' }}">View</a>
+                    </div>
                 </div>
                 {% else %}
                 <div class="activity-item">
                     <div class="activity-details">
                         <p>No recent activity found.</p>
-                        <p class="subtext">Start a <a href="{{ url_for('diagnosis') }}">new diagnosis</a> to see results here.</p>
+                        <p class="subtext" style="margin-left: 0;">Start a <a href="{{ url_for('diagnosis') }}" class="btn-link" style="padding: 0; font-weight: 500;">new diagnosis</a> to see results here.</p>
                     </div>
                 </div>
                 {% endfor %}

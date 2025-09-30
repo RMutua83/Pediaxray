@@ -1,257 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PneumoAI Admin Dashboard</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .section { display: none; }
-    .section.active { display: block; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Custom style for the active sidebar link */
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link.active {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0369a1; /* sky-700 */
+            font-weight: 600;
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+            padding-left: 1rem; /* Adjust padding to make space for the border */
+        }
+        .sidebar-link:not(.active) {
+            border-left: 4px solid transparent;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex">
+<body class="bg-gray-50 text-gray-800 flex min-h-screen">
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-white h-screen shadow-md fixed left-0 top-0 flex flex-col">
-    <div class="p-6 border-b border-gray-200">
-      <h2 class="text-xl font-bold text-sky-600">PneumoAI</h2>
-      <p class="text-sm text-gray-500">Admin Panel</p>
-    </div>
-    <nav class="flex-1 p-4 space-y-2">
-      <a href="#" onclick="showSection('dashboard-section')" class="flex items-center px-4 py-2 rounded-lg hover:bg-sky-100 text-gray-700">
-        <i class="fas fa-tachometer-alt mr-3 text-sky-600"></i> Dashboard
-      </a>
-      <a href="#" onclick="showSection('users-section')" class="flex items-center px-4 py-2 rounded-lg hover:bg-sky-100 text-gray-700">
-        <i class="fas fa-users mr-3 text-sky-600"></i> Users
-      </a>
-      <a href="#" onclick="showSection('predictions-section')" class="flex items-center px-4 py-2 rounded-lg hover:bg-sky-100 text-gray-700">
-        <i class="fas fa-stethoscope mr-3 text-sky-600"></i> Predictions
-      </a>
-      <a href="#" onclick="showSection('logs-section')" class="flex items-center px-4 py-2 rounded-lg hover:bg-sky-100 text-gray-700">
-        <i class="fas fa-clipboard-list mr-3 text-sky-600"></i> Logs
-      </a>
-      <a href="#" onclick="showSection('settings-section')" class="flex items-center px-4 py-2 rounded-lg hover:bg-sky-100 text-gray-700">
-        <i class="fas fa-cog mr-3 text-sky-600"></i> Settings
-      </a>
-    </nav>
-    <div class="p-4 border-t border-gray-200">
-      <a href="{{ url_for('logout') }}" class="flex items-center px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">
-        <i class="fas fa-sign-out-alt mr-2"></i> Logout
-      </a>
-    </div>
-  </aside>
-
-  <!-- Main Content -->
-  <div class="flex-1 ml-64">
-   <!-- Header -->
-    <header class="bg-white p-6 border-b border-gray-200 flex justify-between items-center">
-  <div>
-    <h1 class="text-xl font-bold">Admin Panel</h1>
-    <h1 class="text-lg font-medium text-gray-600 mt-1">Welcome, {{ user.name }}!</h1>
-  </div>
-
-  <div class="flex items-center space-x-2">
-    <button class="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200">
-      <i class="fas fa-bell mr-2"></i> Notifications
-    </button>
-  </div>
-  
-    </header>
-    <!-- Main -->
-    <main class="p-6">
-
-      <!-- Dashboard Section -->
-      <div id="dashboard-section" class="section active bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-    <h3 class="text-2xl font-semibold mb-6 text-sky-700">System Overview</h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-sky-50 p-4 rounded-xl shadow-sm border border-sky-200">
-            <p class="text-sm font-medium text-sky-600">Total Users</p>
-            <p class="text-3xl font-bold mt-1">{{ total_users or '0' }}</p>
+    <aside class="w-64 bg-white shadow-xl fixed left-0 top-0 h-full flex flex-col z-20">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-2xl font-extrabold text-sky-700 tracking-wider">PneumoAI</h2>
+            <p class="text-sm text-gray-500">System Admin</p>
         </div>
-        <div class="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
-            <p class="text-sm font-medium text-green-600">Total Diagnoses</p>
-            <p class="text-3xl font-bold mt-1">{{ total_diagnoses or '0' }}</p>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" onclick="showSection('dashboard-section', this)" class="sidebar-link active flex items-center py-2 rounded-lg hover:bg-sky-50 text-gray-700">
+                <i class="fas fa-tachometer-alt w-5 mr-3 text-sky-500"></i> Dashboard
+            </a>
+            <a href="#" onclick="showSection('users-section', this)" class="sidebar-link flex items-center py-2 rounded-lg hover:bg-sky-50 text-gray-700">
+                <i class="fas fa-users w-5 mr-3 text-sky-500"></i> Users
+            </a>
+            <a href="#" onclick="showSection('predictions-section', this)" class="sidebar-link flex items-center py-2 rounded-lg hover:bg-sky-50 text-gray-700">
+                <i class="fas fa-stethoscope w-5 mr-3 text-sky-500"></i> Predictions
+            </a>
+            <a href="#" onclick="showSection('logs-section', this)" class="sidebar-link flex items-center py-2 rounded-lg hover:bg-sky-50 text-gray-700">
+                <i class="fas fa-clipboard-list w-5 mr-3 text-sky-500"></i> Logs
+            </a>
+            <a href="#" onclick="showSection('settings-section', this)" class="sidebar-link flex items-center py-2 rounded-lg hover:bg-sky-50 text-gray-700">
+                <i class="fas fa-cog w-5 mr-3 text-sky-500"></i> Settings
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-100">
+            <a href="{{ url_for('logout') }}" class="flex items-center px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition duration-150">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
         </div>
-        <div class="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
-            <p class="text-sm font-medium text-yellow-600">Pneumonia Cases</p>
-            <p class="text-3xl font-bold mt-1">{{ pneumonia_count or '0' }}</p>
-        </div>
-        <div class="bg-red-50 p-4 rounded-xl shadow-sm border border-red-200">
-            <p class="text-sm font-medium text-red-600">Pending Reviews</p>
-            <p class="text-3xl font-bold mt-1">{{ pending_count or '0' }}</p>
-        </div>
-    </div>
-    
-    <h3 class="text-lg font-medium mb-4 border-b pb-2">Recent System Activity (Last 10)</h3>
+    </aside>
 
-    <div class="activity-list space-y-3">
-        {% for item in recent_activity %}
-        <div class="activity-item bg-gray-50 p-3 rounded-lg border border-gray-200 hover:bg-gray-100">
+    <div class="flex-1 ml-64">
+        <header class="bg-white px-8 py-4 border-b border-gray-100 sticky top-0 z-10 shadow-sm">
             <div class="flex justify-between items-center">
-                <div class="activity-details">
-                    <p class="mb-0 font-semibold text-gray-700">
-                        Diagnosis for **{{ item.patients.name or 'Unknown Patient' }}** <span class="text-xs text-gray-500 ml-2">({{ item.id[:8] }})</span>
-                    </p>
-                    <p class="text-sm mt-0 mb-1">
-                        **Result:** <span class="font-medium {% if 'PNEUMONIA' in item.prediction|upper %}text-red-500{% else %}text-green-500{% endif %}">
-                            {{ item.prediction or 'PENDING' }}
-                        </span> 
-                        {% if item.confidence %}
-                            - Confidence: {{ item.confidence|round(1) }}%
-                        {% endif %}
-                    </p>
-                    <p class="text-xs text-gray-400">
-                        Submitted by: {{ item.users.name or 'Unknown Doctor' }} 
-                        on {{ item.display_time }}
-                    </p>
+                <div>
+                    <h1 class="text-2xl font-semibold">Admin Dashboard</h1>
+                    <h1 class="text-md font-light text-gray-500 mt-1">Welcome, <span class="font-medium text-sky-700">{{ user.name or 'Admin' }}</span>!</h1>
                 </div>
-                
-                <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="px-3 py-1 text-sky-600 border border-sky-600 rounded-lg hover:bg-sky-50 text-sm">
-                    View
-                </a>
+
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center px-4 py-2 text-gray-700 bg-sky-100 rounded-full hover:bg-sky-200 transition duration-150">
+                        <i class="fas fa-bell mr-2"></i> Notifications
+                    </button>
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-sky-700">
+                        {{ user.name[0] or 'A' }}
+                    </div>
+                </div>
             </div>
-        </div>
-        {% else %}
-        <div class="alert bg-gray-100 p-3 text-center text-gray-500 rounded-lg">
-            No recent diagnosis activity in the system.
-        </div>
-        {% endfor %}
-    </div>
+        </header>
 
-</div>
+        <main class="p-8">
 
-      <!-- Users Section -->
-      <div id="users-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-        <h3 class="text-lg font-medium mb-4">Manage Users</h3>
-        <!-- Add User Form -->
-        <form action="{{ url_for('add_user') }}" method="POST" class="inline mb-6 flex flex-wrap gap-4">
-          <input type="text" name="name" placeholder="Full Name" required
-                 class="flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-sky-200">
-          <input type="email" name="email" placeholder="Email" required
-                 class="flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-sky-200">
-          <input type="password" name="password" placeholder="Password" required
-                 class="flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-sky-200">
-          <select name="role" required class="px-4 py-2 border rounded-lg focus:ring focus:ring-sky-200">
-            <option value="">Select Role</option>
-            <option value="doctor">Doctor</option>
-            <option value="system_admin">System Admin</option>
-          </select>
-          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700">
-            <i class="fas fa-user-plus mr-1"></i> Add
-          </button>
-        </form>
+            <div id="dashboard-section" class="section active transition duration-300">
+                <h3 class="text-3xl font-bold mb-8 text-sky-700">System Overview</h3>
 
-        <!-- User Table -->
-        <table class="min-w-full border border-gray-200 rounded-lg">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-2 text-left text-sm font-semibold">Name</th>
-              <th class="px-4 py-2 text-left text-sm font-semibold">Email</th>
-              <th class="px-4 py-2 text-left text-sm font-semibold">Role</th>
-              <th class="px-4 py-2 text-center text-sm font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for user in users %}
-            <tr class="border-t hover:bg-gray-50">
-              <td class="px-4 py-2">{{ user.name }}</td>
-              <td class="px-4 py-2">{{ user.email }}</td>
-              <td class="px-4 py-2 capitalize">{{ user.role }}</td>
-              <td class="px-4 py-2 text-center">
-                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" class="inline">
-                  <button type="submit" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-sky-500 hover:shadow-2xl transition duration-300 shadow-sky-500/10">
+                        <i class="fas fa-users text-3xl text-sky-500 mb-2"></i>
+                        <p class="text-sm font-medium text-gray-500">Total Users</p>
+                        <p class="text-4xl font-extrabold mt-1 text-gray-900">{{ total_users or '0' }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-green-500 hover:shadow-2xl transition duration-300 shadow-green-500/10">
+                        <i class="fas fa-notes-medical text-3xl text-green-500 mb-2"></i>
+                        <p class="text-sm font-medium text-gray-500">Total Diagnoses</p>
+                        <p class="text-4xl font-extrabold mt-1 text-gray-900">{{ total_diagnoses or '0' }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-amber-500 hover:shadow-2xl transition duration-300 shadow-amber-500/10">
+                        <i class="fas fa-lungs text-3xl text-amber-500 mb-2"></i>
+                        <p class="text-sm font-medium text-gray-500">Pneumonia Cases</p>
+                        <p class="text-4xl font-extrabold mt-1 text-gray-900">{{ pneumonia_count or '0' }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-red-500 hover:shadow-2xl transition duration-300 shadow-red-500/10">
+                        <i class="fas fa-history text-3xl text-red-500 mb-2"></i>
+                        <p class="text-sm font-medium text-gray-500">Pending Reviews</p>
+                        <p class="text-4xl font-extrabold mt-1 text-gray-900">{{ pending_count or '0' }}</p>
+                    </div>
+                </div>
 
-      <!-- Predictions Section -->
-      <div id="predictions-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-    <h3 class="text-lg font-medium mb-4">All System Predictions</h3>
+                <h3 class="text-2xl font-semibold mb-6 text-gray-700 border-b pb-3">Recent Activity</h3>
+
+<div class="activity-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {% for item in recent_activity %}
     
-    <table class="min-w-full border border-gray-200 rounded-lg">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="px-4 py-2 text-left text-sm font-semibold">Date</th>
-                <th class="px-4 py-2 text-left text-sm font-semibold">Patient Name</th>
-                <th class="px-4 py-2 text-left text-sm font-semibold">Diagnosis ID</th>
-                <th class="px-4 py-2 text-left text-sm font-semibold">Result</th>
-                <th class="px-4 py-2 text-left text-sm font-semibold">Doctor</th>
-                <th class="px-4 py-2 text-center text-sm font-semibold">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for diag in recent_activity %}
-            <tr class="border-t hover:bg-gray-50">
-                <td class="px-4 py-2 text-sm">{{ diag.display_time.split(' ')[0] }}</td>
-                <td class="px-4 py-2 text-sm">{{ diag.patients.name or 'N/A' }}</td>
-                <td class="px-4 py-2 text-sm text-gray-500">{{ diag.id[:8] }}...</td>
-                <td class="px-4 py-2 text-sm">
-                    <span class="px-2 py-1 rounded text-xs font-semibold 
-                        {% if 'PNEUMONIA' in diag.prediction|upper %}bg-red-100 text-red-600{% else %}bg-green-100 text-green-600{% endif %}">
-                        {{ diag.prediction or 'PENDING' }}
-                    </span>
-                </td>
-                <td class="px-4 py-2 text-sm">{{ diag.users.name or 'N/A' }}</td>
-                <td class="px-4 py-2 text-center">
-                    <a href="{{ url_for('prediction', diagnosis_id=diag.id) }}" class="px-3 py-1 text-sky-600 hover:text-sky-800 text-sm">
-                        View
-                    </a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="6" class="px-4 py-4 text-center text-gray-500">No predictions found.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% set prediction_upper = item.prediction|upper %}
+    {% set result_color = 'bg-green-500 text-white' %}
+    {% set result_border = 'border-green-400' %}
 
+    {% if 'VIRAL' in prediction_upper %}
+        {% set result_color = 'bg-red-500 text-white' %}
+        {% set result_border = 'border-red-400' %}
+    {% elif 'BACTERIAL' in prediction_upper %}
+        {% set result_color = 'bg-amber-500 text-white' %} {# Amber/Orange #}
+        {% set result_border = 'border-amber-400' %}
+    {% endif %}
+    
+    <div class="activity-card bg-white p-5 rounded-xl border-l-4 {{ result_border }} shadow-md hover:shadow-lg transition duration-150 flex flex-col">
+        
+        <div class="flex justify-between items-start mb-3 flex-grow">
+            <div>
+                <p class="text-lg font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-user-injured mr-2 text-sky-500"></i>
+                    {{ item.patients.name or 'Unknown Patient' }}
+                </p>
+                <p class="text-xs text-gray-500 font-mono ml-6 mt-0.5">ID: {{ item.id[:8] }}</p>
+            </div>
+            
+            <a href="{{ url_for('prediction', diagnosis_id=item.id) }}" class="px-3 py-1 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition duration-150 text-sm font-semibold shadow-sm flex items-center">
+                <i class="fas fa-eye mr-1"></i> View
+            </a>
+        </div>
+
+        <div class="flex items-center space-x-6 border-t border-gray-100 pt-3">
+            
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-500 mb-1">AI Result</p>
+                <span class="text-xl font-extrabold px-3 py-1 rounded-full {{ result_color }} shadow-sm">
+                    {{ item.prediction|upper or 'PENDING' }}
+                </span> 
+            </div>
+
+            <div class="text-left">
+                <p class="text-sm font-medium text-gray-500 mb-1">Confidence</p>
+                <span class="text-2xl font-extrabold text-sky-700">
+                    {{ item.confidence|round(1) }}%
+                </span>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-400 mt-4 pt-3 border-t border-dashed border-gray-100">
+            <i class="fas fa-clock mr-1"></i> Submitted: {{ item.display_time }} 
+            <span class="ml-4">by {{ item.users.name or 'Unknown Doctor' }}</span>
+        </p>
+
+    </div>
+    {% else %}
+    <div class="lg:col-span-2 alert bg-gray-200 p-4 text-center text-gray-600 rounded-xl">
+        <i class="fas fa-info-circle mr-2"></i> No recent diagnosis activity in the system.
+    </div>
+    {% endfor %}
 </div>
 
-      <div id="logs-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-    <h3 class="text-lg font-medium mb-4">System Logs & Audit Trail</h3>
-    <p class="text-sm text-gray-500 mb-4">Displaying the last 20 critical system events.</p>
-
-    <div class="space-y-2 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-lg border">
-        {% if system_logs %}
-            {% for log in system_logs %}
-            <div class="text-xs p-2 rounded 
-                {% if 'ERROR' in log.level|upper %}bg-red-100 text-red-700{% elif 'WARN' in log.level|upper %}bg-yellow-100 text-yellow-700{% else %}bg-white text-gray-700{% endif %}">
-                <span class="font-bold mr-2">{{ log.timestamp }}</span>
-                <span class="font-medium">{{ log.level|upper }}:</span>
-                {{ log.message }} (User: {{ log.user_id }})
             </div>
-            {% endfor %}
-        {% else %}
-            <p class="text-center text-gray-500 p-4">System logs are not yet integrated or available.</p>
-        {% endif %}
+
+            <div id="users-section" class="section bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500 transition duration-300">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700">Manage System Users</h3>
+                
+                <form action="{{ url_for('add_user') }}" method="POST" class="mb-8 p-4 bg-gray-50 rounded-lg flex flex-wrap gap-4 items-center">
+                    <input type="text" name="name" placeholder="Full Name" required
+                            class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 transition">
+                    <input type="email" name="email" placeholder="Email" required
+                            class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 transition">
+                    <input type="password" name="password" placeholder="Password" required
+                            class="flex-1 min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 transition">
+                    <select name="role" required class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 transition">
+                        <option value="">Select Role</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="system_admin">System Admin</option>
+                    </select>
+                    <button type="submit" class="px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 font-semibold transition duration-150 shadow-md">
+                        <i class="fas fa-user-plus mr-1"></i> Add User
+                    </button>
+                </form>
+
+                <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-sky-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Role</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-sky-700">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% for user in users %}
+                            <tr class="hover:bg-gray-50 transition duration-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ user.email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm capitalize">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if user.role == 'doctor' %}bg-green-100 text-green-800{% else %}bg-sky-100 text-sky-800{% endif %}">
+                                        {{ user.role }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" class="inline">
+                                        <button type="submit" class="text-red-600 hover:text-red-900 transition duration-150">
+                                            <i class="fas fa-trash mr-1"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="predictions-section" class="section bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500 transition duration-300">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700">All System Predictions</h3>
+                
+                <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-sky-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Patient Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Diagnosis ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Result</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-sky-700">Doctor</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-sky-700">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% for diag in recent_activity %}
+                            <tr class="hover:bg-gray-50 transition duration-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ diag.display_time.split(' ')[0] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ diag.patients.name or 'N/A' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ diag.id[:8] }}...</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if 'PNEUMONIA' in diag.prediction|upper %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ diag.prediction or 'PENDING' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ diag.users.name or 'N/A' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <a href="{{ url_for('prediction', diagnosis_id=diag.id) }}" class="text-sky-600 hover:text-sky-800 transition duration-150">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No predictions found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <div id="logs-section" class="section bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500 transition duration-300">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700">System Logs & Audit Trail</h3>
+                <p class="text-sm text-gray-500 mb-4">Displaying the last 20 critical system events. (Scrollable)</p>
+
+                <div class="space-y-2 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    {% if system_logs %}
+                        {% for log in system_logs %}
+                        <div class="text-xs p-3 rounded shadow-sm font-mono
+                            {% if 'ERROR' in log.level|upper %}bg-red-100 text-red-700 border-l-4 border-red-500{% elif 'WARN' in log.level|upper %}bg-yellow-100 text-yellow-700 border-l-4 border-yellow-500{% else %}bg-white text-gray-700 border-l-4 border-gray-300{% endif %}">
+                            <span class="font-bold mr-2">{{ log.timestamp }}</span>
+                            <span class="font-medium uppercase">{{ log.level }}:</span>
+                            {{ log.message }} (User: <span class="text-sky-600">{{ log.user_id }}</span>)
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-center text-gray-500 p-4">System logs are not yet integrated or available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="settings-section" class="section bg-white p-8 rounded-xl shadow-lg border-t-4 border-sky-500 transition duration-300">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700">Settings & Configuration</h3>
+                <div class="p-4 bg-gray-50 rounded-lg text-gray-600">
+                    <p>Use this area to manage global thresholds, AI model status, and other system configuration parameters.</p>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-</div>
+    <script>
+        // Function to show the correct section and manage the active sidebar link
+        function showSection(id, element) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Show the target section
+            document.getElementById(id).classList.add('active');
 
-      <!-- Settings Section -->
-      <div id="settings-section" class="section bg-white p-6 rounded-xl shadow-md border border-gray-200 mt-6">
-        <h3 class="text-lg font-medium mb-4">Settings</h3>
-        <p>Settings forms and options.</p>
-      </div>
+            // Remove active class from all sidebar links
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+            
+            // Add active class to the clicked element
+            if (element) {
+                element.classList.add('active');
+            }
+        }
 
-    </main>
-  </div>
-
-  <script>
-    function showSection(id) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-  </script>
+        // Initialize the dashboard to show the dashboard section as active on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Find the dashboard link and activate it on load
+            const dashboardLink = document.querySelector('.sidebar-link[onclick*="dashboard-section"]');
+            if (dashboardLink) {
+                showSection('dashboard-section', dashboardLink);
+            }
+        });
+    </script>
 
 </body>
 </html>
